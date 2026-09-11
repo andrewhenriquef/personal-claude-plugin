@@ -1,0 +1,13 @@
+{
+  "name": "andrew-skills",
+  "description": "Andrew's skills for development with Claude: PRD/story planning and grilling-style interrogation.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andrew Oliveira"
+  },
+  "keywords": ["planning", "prd", "user-stories", "interrogate", "productivity"],
+  "skills": [
+    "./skills/planning/feature-planning",
+    "./skills/productivity/interrogate"
+  ]
+}

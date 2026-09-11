@@ -3,12 +3,16 @@
   "owner": {
     "name": "Andrew Oliveira"
   },
+  "description": "Andrew's personal Claude Code plugin marketplace.",
   "allowCrossMarketplaceDependenciesOn": ["pm-skills", "claude-plugins-official"],
   "plugins": [
     {
       "name": "andrew-skills",
-      "source": "./andrew-skills",
+      "source": "./",
       "description": "Andrew's skills for development with Claude",
+      "category": "productivity",
+      "keywords": ["planning", "prd", "user-stories", "interrogate"],
+      "skills": ["./skills/planning/", "./skills/productivity/"],
       "strict": false
     }
   ]
