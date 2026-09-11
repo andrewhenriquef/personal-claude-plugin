@@ -1,0 +1,10 @@
+{
+  "name": "feature-planning",
+  "description": "PRD development and user-story extraction, with interrogate-driven gap-filling.",
+  "version": "1.0.0",
+  "dependencies": [
+    { "name": "prd-development", "marketplace": "pm-skills" },
+    { "name": "user-story", "marketplace": "pm-skills" },
+    { "name": "mattpocock-skills", "marketplace": "claude-plugins-official" }
+  ]
+}

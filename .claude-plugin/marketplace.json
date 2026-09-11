@@ -1,0 +1,15 @@
+{
+  "name": "andrew-plugins",
+  "owner": {
+    "name": "Andrew Oliveira"
+  },
+  "allowCrossMarketplaceDependenciesOn": ["pm-skills", "claude-plugins-official"],
+  "plugins": [
+    {
+      "name": "andrew-skills",
+      "source": "./andrew-skills",
+      "description": "Andrew's skills for development with Claude",
+      "strict": false
+    }
+  ]
+}
