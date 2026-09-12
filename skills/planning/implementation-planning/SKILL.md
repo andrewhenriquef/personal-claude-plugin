@@ -1,13 +1,13 @@
 ---
 name: implementation-planning
-description: Generate sequence diagrams and extract implementation details from written user stories — classes/modules, interfaces, code samples, data/schema changes — and write them into each user_story_<N>.md file. Use after feature-planning has produced docs/<TAG>/user_story_*.md files and engineering needs a technical plan before coding.
+description: Generate flow/sequence diagrams (with AS IS/TO BE when changing existing behavior) and extract implementation details from written user stories — classes/modules, interfaces, API contracts, code samples, data/schema changes, dependencies, non-functional requirements, observability, rollout, security — and write them into each user_story_<N>.md file. Given a story ID, runs that one story; given just the tag with multiple stories, fans out one senior-dev agent per story in parallel then checks cross-story consistency. Use after feature-planning has produced docs/<TAG>/user_story_*.md files and engineering needs a technical plan before coding.
 model: opus
 effort: high
 ---
 
 ## Purpose
 
-Turn product-level user stories into a technical implementation plan, written back into the same story files: a story-level flow diagram, a sequence diagram per acceptance criterion, plus concrete engineering decisions — which classes/modules to create or change, their interfaces, code samples where prose alone can't pin the decision down, and any data/schema changes. No interview, no re-derivation of the product decisions already made — this skill synthesizes what the codebase and the story already tell you.
+Turn product-level user stories into a technical implementation plan, written back into the same story files: a story-level flow diagram, a sequence diagram per acceptance criterion — each as AS IS/TO BE pair when changing an existing flow, single diagram when introducing a new one — plus concrete engineering decisions: which classes/modules to create or change, their interfaces and API contracts, code samples for every planned change, data/schema changes, and (where relevant) dependencies, non-functional requirements, observability, rollout/backward compatibility, and security/permissions. No interview, no re-derivation of the product decisions already made — this skill synthesizes what the codebase and the story already tell you.
 
 Not a spec-writing skill and not a coding skill. It plans *how* the story gets built; it does not write production code, open a PR, or re-litigate *what* the story is.
 
@@ -15,11 +15,11 @@ Not a spec-writing skill and not a coding skill. It plans *how* the story gets b
 
 **Required:** `<TAG>` — the ticket tag/slug identifying `docs/<TAG>/`, the folder `feature-planning` / `user-story` wrote the story files into. Without it, the correct folder can't be resolved — ask for it before doing anything else.
 
-**Optional:** specific `user_story_<N>.md` filenames within that folder, to scope the run to a subset instead of every story under `docs/<TAG>/`.
+**Optional:** `<STORY_ID>` — the `N` in `user_story_<N>.md`, to scope the run to that one story. Omit it with a `<TAG>` that has more than one story file to fan out instead: one `senior-dev` agent is launched per story, in parallel, each doing the technical work for its own story directly (see Step 1). If only one story file exists under `<TAG>`, that one is unambiguous and runs directly, no fan-out needed. Multiple explicit `<STORY_ID>`s (or explicit filenames) may be given to scope a direct run to more than one story without fanning out.
 
 **Also useful:** the PRD at `docs/<TAG>/PRD.md`, if present, for cross-story context (shared entities, dependencies between stories).
 
-Anything supplied with the invocation — the tag, explicit story filenames — counts as scope already given. Use it, don't re-ask.
+Anything supplied with the invocation — the tag, the story ID(s), explicit story filenames — counts as scope already given. Use it, don't re-ask.
 
 ## Anti-pattern: no re-litigating the product decision
 
@@ -33,9 +33,18 @@ Codebase exploration settles most technical decisions. When one doesn't — a re
 
 ## Process
 
-### Step 1 — Locate story files
+### Step 1 — Locate story file(s), or fan out one senior-dev per story
 
-Require `<TAG>` before proceeding — if missing, ask for it, don't guess or search for a folder to infer it from. Once known, resolve to a concrete list of files: specific filenames if given, otherwise glob `docs/<TAG>/user_story_*.md`.
+Require `<TAG>` before proceeding — if missing, ask for it, don't guess or search for a folder to infer it from. Once known, glob `docs/<TAG>/user_story_*.md` and branch:
+
+- **`<STORY_ID>`(s) or explicit filename(s) given** — resolve directly to `docs/<TAG>/user_story_<N>.md` for each and run Steps 2 through 7 yourself, including the cross-story consistency check.
+- **Nothing given, exactly one `user_story_*.md` exists** — unambiguous. Run Steps 2 through 7 yourself (Step 7 will no-op per its own single-file skip rule).
+- **Nothing given, more than one `user_story_*.md` exists** — fan out instead of asking which one or processing any of them yourself. For each story file, launch one agent in parallel: `Agent(subagent_type: "senior-dev", prompt: "<TAG> <STORY_ID>")`, one `Agent` call per story, all issued in the same message so they run concurrently — same pattern as `feature-planning`'s parallel review step. Each `senior-dev` does the equivalent of Steps 2-6 for its own story only, directly (it does not call back into this skill, and never runs `interrogate` itself — a background agent can't hold a live back-and-forth with the user). Once every spawned agent has finished, skip Steps 2-6 yourself and:
+  1. Relay each agent's report to the user (story, changed-flow vs new-feature, 🔧 tags resolved).
+  2. For anything an agent reported as **Blocked** (a product-level ambiguity, or a real technical fork it couldn't settle), call `Skill(skill: "interrogate", args: <the blocked question(s)>)` yourself — you're in the main thread and can. Once answered, patch that resolved detail directly into the affected story's `## Implementation Details` (and remove its 🔧 tag) — you don't need to re-spawn the agent for a one-field fix.
+  3. Run Step 7 once, yourself, against every story with an `## Implementation Details` section — a story an agent couldn't finish at all just has none yet, and Step 7 already skips those.
+
+This skill is the only thing that spawns `senior-dev` agents — it never calls itself back, and `senior-dev` never calls this skill. Fan-out happens exactly once, at Step 1, only when `<STORY_ID>` is absent and multiple stories exist.
 
 ### Step 2 — Read story + surrounding context
 
@@ -57,7 +66,7 @@ Call `Skill(skill: "design-doc-mermaid", args: <the story as a whole>)` once per
 - **Existing flow being changed** — generate two diagrams: **AS IS** (current story-level flow) and **TO BE** (flow after the story's change).
 - **Complete new feature** — generate one diagram: the new story-level flow. No AS IS diagram.
 
-Place it near the top of the story file, before the acceptance criteria, e.g.:
+Place it after the Cohn use case (who/what/why) and before the acceptance criteria, e.g.:
 
 ~~~
 ## Story Flow
@@ -149,9 +158,13 @@ Keep the Cohn/Gherkin content, the Step 4 story flow diagram, and the Step 5 per
 - Classes/modules: ... (note which criteria each serves, e.g. "supports AC1, AC3")
 - Interface: ...
   ```<lang>
-  <short signature or illustrative sample>
+  <key method/function signature>
   ```
 - API contract: ... (request/response shape, status codes, error payloads — omit if no external-facing interface)
+- Code samples:
+  ```<lang>
+  <planned change, illustrative — repeat per class/module changed>
+  ```
 - Data/schema: ...
 - Error handling: ...
 - Dependencies/integration points: ... (omit if none)
@@ -165,7 +178,7 @@ If the file already has an `## Implementation Details` section from a prior run,
 
 ### Step 7 — Cross-story consistency check
 
-Once every requested story has its Step 4-6 content, re-read all stories together and check:
+Once every requested story has its Step 4-6 content, check it against every other `user_story_*.md` under `docs/<TAG>/` — not just the one(s) processed this run, since this skill usually runs one story at a time. If a sibling story has no `## Implementation Details` section yet (not yet run through this skill), skip it — there's nothing technical to compare yet. If `docs/<TAG>/` has only one story file total, skip this step. Otherwise re-read the processed story alongside every sibling that does have implementation details, and check:
 
 - **Naming** — same entity, class, module, field named consistently across every story that touches it.
 - **Shapes** — no two stories independently inventing incompatible shapes for the same class, interface, or code sample.
@@ -173,6 +186,8 @@ Once every requested story has its Step 4-6 content, re-read all stories togethe
 - **API contracts** — no two stories defining conflicting request/response shapes or status codes for the same endpoint.
 - **Diagrams** — each story's Step 4 flow diagram agrees with its own Step 5 per-AC diagrams (same actors, same sequence); AS IS diagrams across stories agree on the current flow where they overlap.
 - **Dependencies** — every dependency one story declares on another is real (that story exists, does what's expected) and reciprocal where relevant (if story A depends on story B, story B's plan doesn't contradict that).
+- **Non-functional requirements** — no two stories assuming conflicting perf/concurrency/data-volume constraints for a shared component.
+- **Observability** — shared flows aren't logged/measured redundantly or inconsistently by different stories (same event, different metric name).
 - **Rollout/backward compatibility** — no two stories assuming incompatible rollout orders or coexistence states for a shared flow.
 - **Security/permissions** — no two stories applying different auth/authz rules to the same resource.
 
