@@ -59,8 +59,8 @@ Once every story file from Step 4 exists, call `Skill(skill: "design-doc-mermaid
 
 Interleave each diagram directly beneath the acceptance criterion it belongs to — never batch all criteria first and all diagrams after:
 
-```
 Acceptance Criteria:
+
 
 1. <criterion 1>
 
@@ -75,7 +75,7 @@ Acceptance Criteria:
   sequenceDiagram
     ... diagram for criterion 2 ...
   ```
-```
+
 
 Edit the `docs/<TAG>/user_story_<N>.md` file in place to insert each diagram right after its criterion — don't append all diagrams at the end of the file.
 
@@ -86,6 +86,11 @@ Review the written PRD and user story files (including their sequence diagrams) 
 - **Mechanical fixes** (typos, inconsistent terms, broken links) — apply directly to the files.
 - **Substantive gaps** (missing decision, ambiguous scope, new open question) — route back to `interrogate`, don't assume. Apply the fix once settled, then re-run this review pass once before considering it done.
 - **Unresolved 🔶 Assumption found during review** — leave the tag in place, don't strip it; only remove it if this pass resolves it with the user via `interrogate`.
+- **Missing acceptance-criteria scenarios** — for each story, think through edge cases, error paths, and boundary conditions the current criteria don't cover (e.g. empty state, permission denied, concurrent update, invalid input). If a plausible scenario is missing:
+  - If it depends on a business rule or priority call only the user can make, route it through `interrogate` before adding it — don't assume.
+  - Once settled, add the new acceptance criterion to `user_story_<N>.md`, then run Step 5 for it so it gets its own sequence diagram, interleaved in place like the rest.
+  - Don't invent scenarios beyond what's plausible for the story's stated scope — this fills real gaps, not padding.
+- **Conciseness check** — for each story, verify wording is tight: no redundant restatement between the Cohn who/what/why and the acceptance criteria, no filler sentences, no scenario duplicating another almost word-for-word. Tighten in place; if a fix would drop something substantive, treat it as a substantive gap and check with the user via `interrogate` instead of silently deleting it.
 - Stop when one pass finds nothing left to fix — don't keep re-reviewing for style.
 
 ### Sequencing rule
