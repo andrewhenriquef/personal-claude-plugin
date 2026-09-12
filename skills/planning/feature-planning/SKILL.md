@@ -97,8 +97,19 @@ Review the written PRD and user story files (including their sequence diagrams a
 - **Conciseness check** — for each story, verify wording is tight: no redundant restatement between the Cohn who/what/why and the acceptance criteria, no filler sentences, no scenario duplicating another almost word-for-word. Tighten in place; if a fix would drop something substantive, treat it as a substantive gap and check with the user via `interrogate` instead of silently deleting it.
 - Stop when one pass finds nothing left to fix — don't keep re-reviewing for style.
 
+### Step 8 — Log questions & answers
+
+Once Step 7's review pass finds nothing left to fix, append a `## Questions & Answers` section to the end of `docs/<TAG>/PRD.md`, listing every question routed through `interrogate` during Steps 2 and 7 — not `prd-development`'s own internal flow, only ones that went through `interrogate` — in the order asked, each with the answer the user gave:
+
+```
+- **Q:** <question as asked>
+  **A:** <user's answer>
+```
+
+If a question was answered and later revised during the flow, keep only the final answer — don't list stale intermediate ones. Run this once, after Step 7 is fully done, not after every `interrogate` call.
+
 ### Sequencing rule
 
-Never run Step 5 before every story file from Step 4 exists — with multiple stories, wait for all of them, not just the first. Never run Step 6 before every story has its Step 5 sequence diagrams appended. Never run Step 7 before every story has its Step 6 Implementation Details section.
+Never run Step 5 before every story file from Step 4 exists — with multiple stories, wait for all of them, not just the first. Never run Step 6 before every story has its Step 5 sequence diagrams appended. Never run Step 7 before every story has its Step 6 Implementation Details section. Never run Step 8 before Step 7's review pass is finished.
 
 
