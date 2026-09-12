@@ -20,6 +20,12 @@ Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea 
 | [qa-reviewer](agents/qa-reviewer.md) | Review a PRD from a left-shift QA lens: testability, missing edge/negative paths, non-functional test coverage. Read-only, findings only. |
 | [senior-dev](agents/senior-dev.md) | Spawned by `implementation-planning` (one per story, in parallel, when a tag has multiple stories): explores the codebase, generates diagrams, writes technical details back into one `user_story_<N>.md`. Read/write. |
 
+## MCP servers
+
+| Server | Description |
+|---|---|
+| [context7](https://context7.com) | Up-to-date, version-specific documentation and code examples pulled directly from source repos. Hosted remote server, works anonymously; set `CONTEXT7_API_KEY` for higher rate limits. |
+
 ## Install
 
 Add marketplace:
