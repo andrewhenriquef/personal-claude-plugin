@@ -61,7 +61,7 @@ Trace the existing code flow and sequence relevant to the story — which classe
 
 ### Step 4 — Generate story-level flow diagram: `design-doc-mermaid`
 
-Call `Skill(skill: "design-doc-mermaid", args: <the story as a whole>)` once per story, to produce one flow diagram covering the story end-to-end (not per acceptance criterion — that's Step 5). Skip a story that already has its flow diagram(s) from a prior run. Base it on Step 3's finding, same logic as Step 5's AC diagrams:
+Call `Skill(skill: "design-doc-mermaid", args: <the story as a whole, as a flowchart>)` once per story, to produce one **flowchart** (`flowchart TD`) covering the story end-to-end — not a sequence diagram; this is the high-level shape of the story, not an actor/message trace (that's Step 5). Skip a story that already has its flow diagram(s) from a prior run. Base it on Step 3's finding, same logic as Step 5's AC diagrams:
 
 - **Existing flow being changed** — generate two diagrams: **AS IS** (current story-level flow) and **TO BE** (flow after the story's change).
 - **Complete new feature** — generate one diagram: the new story-level flow. No AS IS diagram.
@@ -73,13 +73,13 @@ Place it after the Cohn use case (who/what/why) and before the acceptance criter
 
 **AS IS**
 ```mermaid
-sequenceDiagram
+flowchart TD
   ... current end-to-end flow ...
 ```
 
 **TO BE**
 ```mermaid
-sequenceDiagram
+flowchart TD
   ... changed end-to-end flow ...
 ```
 ~~~
@@ -125,6 +125,8 @@ Acceptance Criteria:
     ... changed flow for criterion 1 ...
   ```
 ~~~
+
+**Never use `alt`/`opt` (or `loop`/`par`) in an AC sequence diagram.** Each acceptance criterion already describes one Given/When/Then path — draw exactly that path, start to finish, with no branching inside the diagram. If a scenario's flow genuinely forks into more than one path worth showing, that's a sign it should be more than one diagram (or more than one AC) — draw each path as its own separate, self-contained sequence diagram rather than one diagram with `alt`/`else` branches. This also sidesteps a real Mermaid failure mode: activating a participant with `->>+X` before a branch and only deactivating it (`-->>-X`) in one arm leaves the activation stack unbalanced and the diagram fails to render (or renders broken activation bars) — isolated linear diagrams can't hit this at all.
 
 Edit the `docs/<TAG>/user_story_<N>.md` file in place to insert each criterion's diagram(s) right after it — don't append all diagrams at the end of the file.
 
