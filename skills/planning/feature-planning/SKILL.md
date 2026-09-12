@@ -8,7 +8,7 @@ effort: high
 
 ## Purpose
 
-Drive a feature or task from raw idea to written artifacts: a PRD (via `prd-development`, gaps closed via `interrogate`), then user stories extracted from it (via `user-story`), each combining Mike Cohn's use-case format (who/what/why) with Gherkin acceptance criteria (Given/When/Then) generated via `bdd-gherkin`. Both saved as files under `docs/`.
+Drive a feature or task from raw idea to written artifacts: a PRD (via `prd-development`, gaps closed via `interrogate`), then user stories extracted from it (via `user-story`), each combining Mike Cohn's use-case format (who/what/why) with Gherkin acceptance criteria (Given/When/Then), plus a sequence diagram per acceptance criterion (via `design-doc-mermaid`). Both saved as files under `docs/`.
 
 Not a feature spec — a conversation starter that captures *who* benefits, *what* they're trying to do, *why* it matters, and *how* you'll know it works.
 
@@ -33,7 +33,7 @@ When `prd-development` or story drafting surfaces a technical detail:
 
 ## Orchestration
 
-This skill reuses three other skills in sequence. Do not reimplement their logic — invoke them with the `Skill` tool.
+This skill reuses other skills in sequence. Do not reimplement their logic — invoke them with the `Skill` tool.
 
 ### Step 1 — Gather requirements: `prd-development`
 
@@ -53,43 +53,35 @@ Once the PRD is complete (Steps 1–2 done, no open questions outstanding), ask 
 
 Once Step 3 is complete, call `Skill(skill: "user-story", args: <PRD content or path to docs/<TAG>/PRD.md>)` and extract the user stories from the PRD. If the PRD's epic breakdown yields multiple stories, repeat the call once per story. Write each to `docs/<TAG>/user_story_<N>.md` (e.g. `docs/PFS-1110/user_story_1.md`, `user_story_2.md`, ...), creating the folder if it doesn't exist.
 
-### Step 5 — Generate BDD scenarios: `bdd-gherkin`
+### Step 5 — Generate sequence diagrams: `design-doc-mermaid`
 
-Once every story file from Step 4 exists, call `Skill(skill: "bdd-gherkin", args: <story content or path to docs/<TAG>/user_story_<N>.md>)` once per story to generate Given/When/Then scenarios for that story's acceptance criteria. Append the generated scenarios to the corresponding `docs/<TAG>/user_story_<N>.md` file, under its acceptance criteria section — don't overwrite the rest of the story.
+Once every story file from Step 4 exists, call `Skill(skill: "design-doc-mermaid", args: <one acceptance criterion>)` once per acceptance criterion, generating a Mermaid sequence diagram of the actor/system interactions it describes.
 
-If `bdd-gherkin` needs a clarifying answer (business rule, edge case, precondition) that only the user can give, route it through `interrogate` rather than assuming.
-
-### Step 6 — Generate sequence diagrams: `design-doc-mermaid`
-
-Once every story has its Step 5 BDD scenarios, call `Skill(skill: "design-doc-mermaid", args: <one BDD scenario>)` once per scenario, generating a Mermaid sequence diagram of the actor/system interactions across that scenario's Given/When/Then flow.
-
-Interleave each diagram directly beneath the scenario it belongs to — never batch all scenarios first and all diagrams after:
+Interleave each diagram directly beneath the acceptance criterion it belongs to — never batch all criteria first and all diagrams after:
 
 ```
-Scenario: <BDD scenario 1>
-  Given ...
-  When ...
-  Then ...
+Acceptance Criteria:
+
+1. <criterion 1>
 
   ```mermaid
   sequenceDiagram
-    ... diagram for scenario 1 ...
+    ... diagram for criterion 1 ...
   ```
 
-Scenario: <BDD scenario 2>
-  ...
+2. <criterion 2>
 
   ```mermaid
   sequenceDiagram
-    ... diagram for scenario 2 ...
+    ... diagram for criterion 2 ...
   ```
 ```
 
-Edit the `docs/<TAG>/user_story_<N>.md` file in place to insert each diagram right after its scenario — don't append all diagrams at the end of the file.
+Edit the `docs/<TAG>/user_story_<N>.md` file in place to insert each diagram right after its criterion — don't append all diagrams at the end of the file.
 
-### Step 7 — Review and validate
+### Step 6 — Review and validate
 
-Review the written PRD and user story files (including their BDD scenarios and sequence diagrams) against each other: gaps, inconsistencies (naming, scope, persona), missing or contradictory acceptance criteria, stale references. Apply every fix directly to `docs/<TAG>/PRD.md` and the affected `docs/<TAG>/user_story_<N>.md` files — this step updates the files on disk, not just a findings list.
+Review the written PRD and user story files (including their sequence diagrams) against each other: gaps, inconsistencies (naming, scope, persona), missing or contradictory acceptance criteria, stale references. Apply every fix directly to `docs/<TAG>/PRD.md` and the affected `docs/<TAG>/user_story_<N>.md` files — this step updates the files on disk, not just a findings list.
 
 - **Mechanical fixes** (typos, inconsistent terms, broken links) — apply directly to the files.
 - **Substantive gaps** (missing decision, ambiguous scope, new open question) — route back to `interrogate`, don't assume. Apply the fix once settled, then re-run this review pass once before considering it done.
@@ -98,6 +90,6 @@ Review the written PRD and user story files (including their BDD scenarios and s
 
 ### Sequencing rule
 
-Never run Step 5 before every story file from Step 4 exists — with multiple stories, wait for all of them, not just the first. Never run Step 6 before every story has its Step 5 BDD scenarios appended. Never run Step 7 before every story has its Step 6 sequence diagrams appended.
+Never run Step 5 before every story file from Step 4 exists — with multiple stories, wait for all of them, not just the first. Never run Step 6 before every story has its Step 5 sequence diagrams appended.
 
 

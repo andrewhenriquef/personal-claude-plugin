@@ -5,11 +5,10 @@
   "author": {
     "name": "Andrew Oliveira"
   },
-  "keywords": ["planning", "prd", "user-stories", "interrogate", "productivity", "mermaid", "diagrams", "bdd", "gherkin", "cucumber"],
+  "keywords": ["planning", "prd", "user-stories", "interrogate", "productivity", "mermaid", "diagrams"],
   "skills": [
     "./skills/planning/feature-planning",
     "./skills/productivity/interrogate",
-    "./skills/design-doc-mermaid",
-    "./skills/testing/bdd-gherkin"
+    "./skills/design-doc-mermaid"
   ]
 }
