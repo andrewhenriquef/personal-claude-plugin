@@ -59,8 +59,8 @@ Once every story file from Step 4 exists, call `Skill(skill: "design-doc-mermaid
 
 Interleave each diagram directly beneath the acceptance criterion it belongs to — never batch all criteria first and all diagrams after:
 
+~~~
 Acceptance Criteria:
-
 
 1. <criterion 1>
 
@@ -75,7 +75,7 @@ Acceptance Criteria:
   sequenceDiagram
     ... diagram for criterion 2 ...
   ```
-
+~~~
 
 Edit the `docs/<TAG>/user_story_<N>.md` file in place to insert each diagram right after its criterion — don't append all diagrams at the end of the file.
 
