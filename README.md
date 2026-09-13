@@ -26,6 +26,23 @@ Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea 
 |---|---|
 | [context7](https://context7.com) | Up-to-date, version-specific documentation and code examples pulled directly from source repos. Hosted remote server, works anonymously; set `CONTEXT7_API_KEY` for higher rate limits. |
 
+## External dependencies
+
+`feature-planning` depends on skills from [deanpeters/Product-Manager-Skills](https://github.com/deanpeters/Product-Manager-Skills) (marketplace: `pm-skills`). `allowCrossMarketplaceDependenciesOn` in `.claude-plugin/marketplace.json` only grants permission to reference that marketplace — it does not install it or its plugins. Each skill in `pm-skills` ships as its own plugin, so the marketplace and each plugin used here must be installed separately:
+
+| Skill | Description |
+|---|---|
+| [prd-development](https://github.com/deanpeters/Product-Manager-Skills/tree/main/skills/prd-development) | Build a structured PRD connecting problem, users, solution, and success criteria. Drives Step 1 of `feature-planning`. |
+| [user-story](https://github.com/deanpeters/Product-Manager-Skills/tree/main/skills/user-story) | Create user stories with Mike Cohn format and Gherkin acceptance criteria. Drives Step 5 of `feature-planning`. |
+
+Install:
+
+```
+/plugin marketplace add deanpeters/Product-Manager-Skills
+/plugin install prd-development@pm-skills
+/plugin install user-story@pm-skills
+```
+
 ## Install
 
 Add marketplace:
