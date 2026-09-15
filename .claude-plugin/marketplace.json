@@ -11,7 +11,7 @@
       "source": "./",
       "description": "Andrew's skills for development with Claude",
       "category": "productivity",
-      "keywords": ["planning", "prd", "user-stories", "interrogate"],
+      "keywords": ["planning", "prd", "user-stories", "interview"],
       "strict": false
     }
   ]

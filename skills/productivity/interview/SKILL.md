@@ -1,11 +1,11 @@
 ---
-name: interrogate
-description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking.
-model: sonnet
-effort: medium
+name: interview
+description: Interview the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking.
 ---
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
+
+Write in ASD-STE100 Simplified Technical English. Give a brief context about what this round covers and why — in that style.
 
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round, then wait for the user's answers before the next round.
 

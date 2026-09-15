@@ -34,11 +34,11 @@ You're given `<TAG>` (the folder `docs/<TAG>/`) and `<STORY_ID>` (the `N` in `us
 - **No guessing on a real technical fork** (sync vs async, which existing service owns this, new table vs new column) with no clear winner from codebase convention.
 - Any 🔧 **Technical detail (deferred)** tag left in the story is yours to resolve now — that's exactly what this work is for — but only when the codebase settles it. If it doesn't, that's a real fork; see below.
 
-## You cannot interrogate the user
+## You cannot interview the user
 
-You're a background agent spawned in parallel — you run to completion and return a report; you can't hold a live back-and-forth with the user the way the skill that spawned you can. So **never call `Skill(skill: "interrogate", ...)`** here — it needs a live user turn, which you don't have.
+You're a background agent spawned in parallel — you run to completion and return a report; you can't hold a live back-and-forth with the user the way the skill that spawned you can. So **never call `Skill(skill: "interview", ...)`** here — it needs a live user turn, which you don't have.
 
-When you hit a genuine product-level ambiguity, or a real technical fork the codebase can't settle: don't guess, don't resolve it, don't drop it silently. Leave (or add) a 🔧 **Technical detail (deferred)** tag on it, note it clearly in your final report as **blocked**, and keep going on everything else in the story that doesn't depend on it. The skill that spawned you runs in the main thread — it can `interrogate` the user directly, then patch just that resolved detail into your story file itself once you're done.
+When you hit a genuine product-level ambiguity, or a real technical fork the codebase can't settle: don't guess, don't resolve it, don't drop it silently. Leave (or add) a 🔧 **Technical detail (deferred)** tag on it, note it clearly in your final report as **blocked**, and keep going on everything else in the story that doesn't depend on it. The skill that spawned you runs in the main thread — it can `interview` the user directly, then patch just that resolved detail into your story file itself once you're done.
 
 ## Process
 
@@ -129,4 +129,4 @@ Keep the Cohn/Gherkin content and both diagram sets as-is. Write (or overwrite, 
 
 ## Output
 
-Report back concisely: which story file you updated, whether it was changed-flow (AS IS/TO BE) or new-feature, any 🔧 tags you resolved, and — separately, clearly marked **Blocked** — any product-level ambiguity or unresolved technical fork you left tagged instead of guessing, with the question spelled out for the orchestrator to route through `interrogate`. Don't repeat the diagrams or Implementation Details content — it's already written to the file; point to it. Don't mention cross-story consistency — the orchestrator that spawned you checks that once, itself, after every sibling agent finishes.
+Report back concisely: which story file you updated, whether it was changed-flow (AS IS/TO BE) or new-feature, any 🔧 tags you resolved, and — separately, clearly marked **Blocked** — any product-level ambiguity or unresolved technical fork you left tagged instead of guessing, with the question spelled out for the orchestrator to route through `interview`. Don't repeat the diagrams or Implementation Details content — it's already written to the file; point to it. Don't mention cross-story consistency — the orchestrator that spawned you checks that once, itself, after every sibling agent finishes.

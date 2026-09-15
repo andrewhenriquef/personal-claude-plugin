@@ -42,7 +42,7 @@ Review only the product framing. Do not comment on:
 1. **[PRD section]** — <issue, one sentence>.
    **Suggested tag:** 🔵 Open Question | 🔶 Assumption | none (mechanical fix)
    **Why it matters:** <one line>
-   **Suggested question/fix:** <a concrete question to route through `interrogate`, or a direct wording fix>
+   **Suggested question/fix:** <a concrete question to route through `interview`, or a direct wording fix>
 
 ### Verdict
 Ready to proceed to story extraction / Needs another pass

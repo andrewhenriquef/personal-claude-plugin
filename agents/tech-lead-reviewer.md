@@ -40,7 +40,7 @@ Review only technical feasibility and risk. Do not comment on:
 1. **[PRD section]** — <issue, one sentence>.
    **Suggested tag:** 🔧 Technical detail (deferred) | 🔵 Open Question | none (mechanical fix)
    **Why it matters:** <one line — the risk, not the fix>
-   **Suggested question/fix:** <a concrete question to route through `interrogate`, phrased at product level (e.g. "what should happen if X fails" not "which retry policy"), or evidence citation if flagging integration risk>
+   **Suggested question/fix:** <a concrete question to route through `interview`, phrased at product level (e.g. "what should happen if X fails" not "which retry policy"), or evidence citation if flagging integration risk>
 
 ### Verdict
 Ready to proceed to story extraction / Needs another pass

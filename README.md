@@ -1,6 +1,6 @@
 # Andrew's Claude Code Skills
 
-Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea interrogation.
+Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea interviewing.
 
 ## Skills
 
@@ -8,7 +8,7 @@ Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea 
 |---|---|
 | [feature-planning](skills/planning/feature-planning/SKILL.md) | Orchestrate PRD development end-to-end into Mike Cohn/Gherkin user stories. Use when turning a feature or task into a written PRD plus development-ready stories, saved under `docs/`. |
 | [implementation-planning](skills/planning/implementation-planning/SKILL.md) | Generate flow/sequence diagrams (AS IS/TO BE when changing existing behavior) and extract implementation details — classes/modules, interfaces, API contracts, code samples, data/schema changes, dependencies, non-functional requirements, observability, rollout, security — into one user_story_<N>.md at a time. Use after feature-planning has produced docs/<TAG>/user_story_*.md files. |
-| [interrogate](skills/productivity/interrogate/SKILL.md) | Grill the user relentlessly about a plan, decision, or idea. Use when stress-testing thinking. |
+| [interview](skills/productivity/interview/SKILL.md) | Interview the user relentlessly about a plan, decision, or idea. Use when stress-testing thinking. |
 | [design-doc-mermaid](skills/design-doc-mermaid/SKILL.md) | Create Mermaid diagrams (flowchart, sequence, class, ER, state, C4, architecture) from text or code. Vendored from [SpillwaveSolutions/design-doc-mermaid](https://github.com/SpillwaveSolutions/design-doc-mermaid). |
 
 ## Agents
@@ -19,6 +19,7 @@ Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea 
 | [tech-lead-reviewer](agents/tech-lead-reviewer.md) | Review a PRD from a tech-lead lens: feasibility risk, missing non-functional requirements, integration risk. Read-only, findings only. |
 | [qa-reviewer](agents/qa-reviewer.md) | Review a PRD from a left-shift QA lens: testability, missing edge/negative paths, non-functional test coverage. Read-only, findings only. |
 | [senior-dev](agents/senior-dev.md) | Spawned by `implementation-planning` (one per story, in parallel, when a tag has multiple stories): explores the codebase, generates diagrams, writes technical details back into one `user_story_<N>.md`. Read/write. |
+| [product-designer](agents/product-designer.md) | Runs discovery by interviewing the user about problem framing, flows, and persona, focused on client/API-consumer experience, not frontend UI. Hands off persona/flow/problem-statement artifacts. Read/write. |
 
 ## MCP servers
 

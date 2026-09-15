@@ -42,7 +42,7 @@ Review only testability and coverage gaps at the PRD level. Do not comment on:
 1. **[PRD section]** — <issue, one sentence>.
    **Suggested tag:** 🔵 Open Question | 🔶 Assumption | none (mechanical fix)
    **Why it matters:** <one line — what could ship broken and go unnoticed>
-   **Suggested question/fix:** <a concrete question to route through `interrogate`, e.g. "what should happen when X is empty/fails/times out">
+   **Suggested question/fix:** <a concrete question to route through `interview`, e.g. "what should happen when X is empty/fails/times out">
 
 ### Verdict
 Ready to proceed to story extraction / Needs another pass

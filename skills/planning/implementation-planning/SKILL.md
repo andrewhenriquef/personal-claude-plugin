@@ -29,7 +29,7 @@ This skill exists to resolve exactly the things `feature-planning` deliberately 
 
 ## Interrogate for technical decisions only
 
-Codebase exploration settles most technical decisions. When one doesn't — a real fork with no clear winner from convention or context (e.g. sync vs async, which existing service owns this, new table vs new column) — call `Skill(skill: "interrogate", args: <the open technical question(s)>)` to grill the user until settled. Don't guess on a decision that would be expensive to reverse later. Never route product-level questions (scope, persona, business rules) through this — those go back to the user directly, flagged, per the anti-pattern above.
+Codebase exploration settles most technical decisions. When one doesn't — a real fork with no clear winner from convention or context (e.g. sync vs async, which existing service owns this, new table vs new column) — call `Skill(skill: "interview", args: <the open technical question(s)>)` to grill the user until settled. Don't guess on a decision that would be expensive to reverse later. Never route product-level questions (scope, persona, business rules) through this — those go back to the user directly, flagged, per the anti-pattern above.
 
 ## Process
 
@@ -39,9 +39,9 @@ Require `<TAG>` before proceeding — if missing, ask for it, don't guess or sea
 
 - **`<STORY_ID>`(s) or explicit filename(s) given** — resolve directly to `docs/<TAG>/user_story_<N>.md` for each and run Steps 2 through 7 yourself, including the cross-story consistency check.
 - **Nothing given, exactly one `user_story_*.md` exists** — unambiguous. Run Steps 2 through 7 yourself (Step 7 will no-op per its own single-file skip rule).
-- **Nothing given, more than one `user_story_*.md` exists** — fan out instead of asking which one or processing any of them yourself. For each story file, launch one agent in parallel: `Agent(subagent_type: "senior-dev", prompt: "<TAG> <STORY_ID>")`, one `Agent` call per story, all issued in the same message so they run concurrently — same pattern as `feature-planning`'s parallel review step. Each `senior-dev` does the equivalent of Steps 2-6 for its own story only, directly (it does not call back into this skill, and never runs `interrogate` itself — a background agent can't hold a live back-and-forth with the user). Once every spawned agent has finished, skip Steps 2-6 yourself and:
+- **Nothing given, more than one `user_story_*.md` exists** — fan out instead of asking which one or processing any of them yourself. For each story file, launch one agent in parallel: `Agent(subagent_type: "senior-dev", prompt: "<TAG> <STORY_ID>")`, one `Agent` call per story, all issued in the same message so they run concurrently — same pattern as `feature-planning`'s parallel review step. Each `senior-dev` does the equivalent of Steps 2-6 for its own story only, directly (it does not call back into this skill, and never runs `interview` itself — a background agent can't hold a live back-and-forth with the user). Once every spawned agent has finished, skip Steps 2-6 yourself and:
   1. Relay each agent's report to the user (story, changed-flow vs new-feature, 🔧 tags resolved).
-  2. For anything an agent reported as **Blocked** (a product-level ambiguity, or a real technical fork it couldn't settle), call `Skill(skill: "interrogate", args: <the blocked question(s)>)` yourself — you're in the main thread and can. Once answered, patch that resolved detail directly into the affected story's `## Implementation Details` (and remove its 🔧 tag) — you don't need to re-spawn the agent for a one-field fix.
+  2. For anything an agent reported as **Blocked** (a product-level ambiguity, or a real technical fork it couldn't settle), call `Skill(skill: "interview", args: <the blocked question(s)>)` yourself — you're in the main thread and can. Once answered, patch that resolved detail directly into the affected story's `## Implementation Details` (and remove its 🔧 tag) — you don't need to re-spawn the agent for a one-field fix.
   3. Run Step 7 once, yourself, against every story with an `## Implementation Details` section — a story an agent couldn't finish at all just has none yet, and Step 7 already skips those.
 
 This skill is the only thing that spawns `senior-dev` agents — it never calls itself back, and `senior-dev` never calls this skill. Fan-out happens exactly once, at Step 1, only when `<STORY_ID>` is absent and multiple stories exist.
@@ -148,7 +148,7 @@ Work out, for the story as a whole (not per criterion — a class or schema chan
 
 Include the last five bullets only when relevant to the story — skip silently for a story with none of these concerns, don't pad with "N/A".
 
-Resolve every 🔧 tag encountered along the way; remove the tag once answered inline in this new content. If resolving one requires a real technical judgment call the codebase can't settle, route it through `interrogate` first (see above) rather than guessing.
+Resolve every 🔧 tag encountered along the way; remove the tag once answered inline in this new content. If resolving one requires a real technical judgment call the codebase can't settle, route it through `interview` first (see above) rather than guessing.
 
 Exclude file paths from the writeup itself — name classes/modules by their role, not their location — unless a path materially disambiguates between two same-named things.
 
@@ -193,4 +193,4 @@ Once every requested story has its Step 4-6 content, check it against every othe
 - **Rollout/backward compatibility** — no two stories assuming incompatible rollout orders or coexistence states for a shared flow.
 - **Security/permissions** — no two stories applying different auth/authz rules to the same resource.
 
-Fix directly in the files. If a fix touches a diagram, regenerate it via `design-doc-mermaid` rather than hand-editing the Mermaid source. If a fix requires a real technical judgment call, route it through `interrogate` (see above) rather than guessing. Stop once one pass finds nothing left to fix.
+Fix directly in the files. If a fix touches a diagram, regenerate it via `design-doc-mermaid` rather than hand-editing the Mermaid source. If a fix requires a real technical judgment call, route it through `interview` (see above) rather than guessing. Stop once one pass finds nothing left to fix.
