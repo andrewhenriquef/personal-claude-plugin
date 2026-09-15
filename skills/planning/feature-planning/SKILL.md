@@ -8,7 +8,7 @@ effort: high
 
 ## Purpose
 
-Drive a feature or task from raw idea to written artifacts: a PRD (via `prd-development`, gaps closed via `interview`, reviewed by `pm-reviewer`/`tech-lead-reviewer`/`qa-reviewer`), then user stories extracted from it (via `user-story`), each combining Mike Cohn's use-case format (who/what/why) with Gherkin acceptance criteria (Given/When/Then). Both saved as files under `docs/`.
+Drive a feature or task from raw idea to written artifacts: optional discovery when context is thin (via `product-designer`), a PRD (via `prd-development`, gaps closed via `interview`, reviewed by `pm-reviewer`/`tech-lead-reviewer`/`qa-reviewer`), then user stories extracted from it (via `user-story`), each combining Mike Cohn's use-case format (who/what/why) with Gherkin acceptance criteria (Given/When/Then). Both saved as files under `docs/`.
 
 Not a feature spec — a conversation starter that captures *who* benefits, *what* they're trying to do, *why* it matters, and *how* you'll know it works.
 
@@ -19,7 +19,7 @@ Not a feature spec — a conversation starter that captures *who* benefits, *wha
 
 Anything supplied with the invocation — text after the skill name, a pasted context dump, an `ARGUMENTS:` line — counts as answers already given. Use it, don't re-ask.
 
-**Arriving empty-handed works too.** Ask who the user is and what they're trying to accomplish before drafting.
+**Arriving empty-handed works too.** Run Step 0's `product-designer` discovery to settle who the user is and what they're trying to accomplish before drafting, rather than asking ad hoc.
 
 ## Anti-pattern: no technical questions
 
@@ -35,9 +35,17 @@ When `prd-development` or story drafting surfaces a technical detail:
 
 This skill reuses other skills in sequence. Do not reimplement their logic — invoke them with the `Skill` tool.
 
+### Step 0 — Discovery (when arriving light on context): `product-designer`
+
+If the input has no clear persona, flow, or problem statement yet — a bare task description, a one-line idea, or truly empty-handed — run discovery first instead of letting `prd-development` guess or Step 2 fill it in piecemeal. Call `Agent(subagent_type: "product-designer", prompt: <task description, or a note that none was given>)`. It interviews the user directly (via `interview`) to settle persona (who/what calls or uses this), flow, and problem statement, and returns them synthesized.
+
+Skip this step entirely when the input already states persona, flow, and problem clearly — don't re-interview for context that's already given.
+
+Feed its output (persona, flow, problem statement, and any open assumptions) into Step 1 as part of the task description, so `prd-development` starts from settled framing instead of a blank task.
+
 ### Step 1 — Gather requirements: `prd-development`
 
-Call `Skill(skill: "prd-development", args: <task description>)`. Let it drive problem framing, personas, solution overview, and success criteria for the feature/task at hand.
+Call `Skill(skill: "prd-development", args: <task description, plus Step 0's discovery output if it ran>)`. Let it drive problem framing, personas, solution overview, and success criteria for the feature/task at hand.
 
 ### Step 2 — Fill gaps: `interview`
 
@@ -79,6 +87,6 @@ If a question was answered and later revised during the flow, keep only the fina
 
 ### Sequencing rule
 
-Never run Step 5 before Step 4's review round and fixes are done. Never run Step 6 before Step 5's story files are written.
+Never run Step 1 before Step 0 (when Step 0 applies). Never run Step 5 before Step 4's review round and fixes are done. Never run Step 6 before Step 5's story files are written.
 
 
