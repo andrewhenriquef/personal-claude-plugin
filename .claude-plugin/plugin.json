@@ -1,7 +1,7 @@
 {
   "name": "andrew-skills",
   "description": "Andrew's skills for development with Claude: PRD/story planning and interview-driven discovery.",
-  "version": "1.7.0",
+  "version": "1.9.0",
   "author": {
     "name": "Andrew Oliveira"
   },
@@ -11,6 +11,8 @@
     "./skills/planning/implementation-planning",
     "./skills/productivity/interview",
     "./skills/productivity/grammar-review",
+    "./skills/productivity/product-interrogatory",
+    "./skills/productivity/understand-the-intent",
     "./skills/design-doc-mermaid"
   ]
 }
