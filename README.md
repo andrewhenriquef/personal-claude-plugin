@@ -1,6 +1,6 @@
 # Andrew's Claude Code Skills
 
-Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea interviewing.
+Personal Claude Code plugin marketplace. Skills for PRD/story planning, idea interviewing, and code simplification.
 
 ## Skills
 
@@ -12,6 +12,7 @@ Personal Claude Code plugin marketplace. Skills for PRD/story planning and idea 
 | [understand-the-intent](skills/productivity/understand-the-intent/SKILL.md) | Interview the user until shared understanding, then write `docs/<slug>/intent.md`: original prompt, context, questions and answers, summary, structured shared understanding, and intent. Open assumptions only when the user chooses them. Writes in STE100 English or Linguagem Simples (pt-BR), per the user's language. |
 | [grammar-review](skills/productivity/grammar-review/SKILL.md) | Review and correct text for grammar, spelling, and clarity in any language (English, Portuguese, Spanish, Italian, and others). Detects the language automatically and rewrites using that language's plain-language standard, keeping original tone and mood. Explicit call only (`/grammar-review`). |
 | [product-interrogatory](skills/productivity/product-interrogatory/SKILL.md) | Product discovery (persona, flow, problem statement) via direct interview in this session, plus a QA left-shift testability pass on the synthesis. Sequential, no subagent — same result as `product-designer` + `qa-reviewer` without the parallel overhead. |
+| [code-simplify](skills/code-reviewing/code-simplify/SKILL.md) | Simplify code for clarity without changing behavior. Process: set scope and a test baseline, understand first (Chesterton's Fence), find opportunities, apply one change at a time, verify, report. References loaded on demand: design ([A Philosophy of Software Design](skills/code-reviewing/code-simplify/references/philosophy-of-software-design.md), [The Pragmatic Programmer](skills/code-reviewing/code-simplify/references/pragmatic-programmer.md)) and language samples ([Go](skills/code-reviewing/code-simplify/references/go.md), [Ruby](skills/code-reviewing/code-simplify/references/ruby.md)), picked by project language. Adapted from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills). Use when code works but is hard to read or maintain. |
 | [design-doc-mermaid](skills/design-doc-mermaid/SKILL.md) | Create Mermaid diagrams (flowchart, sequence, class, ER, state, C4, architecture) from text or code. Vendored from [SpillwaveSolutions/design-doc-mermaid](https://github.com/SpillwaveSolutions/design-doc-mermaid). |
 
 ## Agents
