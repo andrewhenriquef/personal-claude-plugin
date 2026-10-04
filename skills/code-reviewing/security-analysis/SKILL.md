@@ -36,9 +36,10 @@ Three facts shape every step:
 ### Step 0: Set scope
 
 1. Use the files or range the user names.
-2. If none: `git diff` plus `git diff --staged`, or the branch diff against the main branch.
-3. Large scope (over about 20 changed files or 1500 lines): do not read it all at once. Go to Step 2 and review slice by slice. Tell the user the scope you chose.
-4. Skip files that are only tests, docs, or generated code. Say that you skipped them.
+2. If none, use the current change. That is the files not committed yet (`git diff --name-only`, `git diff --staged --name-only`, and new files from `git ls-files --others --exclude-standard`) plus the branch diff against the main branch (`git diff --name-only main...HEAD`; use `master` if the repo has no `main`).
+3. Review a whole file or the whole codebase only when the user asks for a full review.
+4. Large scope (over about 20 changed files or 1500 lines): do not read it all at once. Go to Step 2 and review slice by slice. Tell the user the scope you chose.
+5. Skip files that are only tests, docs, or generated code. Say that you skipped them.
 
 ### Step 1: Build a one-page threat model
 

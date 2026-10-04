@@ -67,7 +67,7 @@ Work strategically, not only tactically: when you touch code, leave its design a
 
 ### Step 0: Set scope and a safety net
 
-1. **Scope:** use the files or code the user names. If none, use the current change: `git diff` and `git diff --staged` (or the branch diff against the main branch). Do not widen scope without asking.
+1. **Scope:** use the files or code the user names. If none, use the current change. That is the files not committed yet (`git diff --name-only`, `git diff --staged --name-only`, and new files from `git ls-files --others --exclude-standard`) plus the branch diff against the main branch (`git diff --name-only main...HEAD`; use `master` if the repo has no `main`). Simplify a whole file or the whole codebase only when the user asks. Do not widen scope without asking.
 2. **Tests:** find the test command (`CLAUDE.md`, `Makefile`, CI config, language reference). Run it once to get a green baseline.
 3. **No tests, or tests do not cover the code:** write a characterization test that pins current behavior first, or tell the user and ask before you continue. Do not simplify code you cannot verify.
 
