@@ -1,11 +1,11 @@
 {
   "name": "andrew-skills",
   "description": "Andrew's skills for development with Claude: PRD/story planning, interview-driven discovery, and code simplification.",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "author": {
     "name": "Andrew Oliveira"
   },
-  "keywords": ["planning", "prd", "user-stories", "interview", "productivity", "mermaid", "diagrams", "refactoring", "code-simplification", "code-review", "security"],
+  "keywords": ["planning", "prd", "user-stories", "interview", "productivity", "mermaid", "diagrams", "refactoring", "code-simplification", "code-review", "security", "lint"],
   "skills": [
     "./skills/planning/feature-planning",
     "./skills/planning/implementation-planning",
@@ -15,6 +15,7 @@
     "./skills/productivity/understand-the-intent",
     "./skills/design-doc-mermaid",
     "./skills/code-reviewing/code-simplify",
-    "./skills/code-reviewing/security-analysis"
+    "./skills/code-reviewing/security-analysis",
+    "./skills/code-reviewing/static-analysis"
   ]
 }
