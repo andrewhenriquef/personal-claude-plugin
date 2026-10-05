@@ -25,7 +25,7 @@ Use in Step 2 of `performance-analysis`. Read only the sections that match the s
 | Is something sorted, filtered, or compiled (a regex, a template, a parser) inside a loop when it can be done once? | Repeated work with the same result |
 | Is the same expensive value computed several times in one path? | Compute once and reuse |
 | Is work done for items that are discarded later? | Filter first, then transform |
-| Does the code recurse or retry with no bound? | Cost grows without limit. The failure side is a reliability issue |
+| Does the code recurse or retry with no bound? | Cost grows without limit. The failure side belongs to `reliability-analysis` |
 
 ## Memory
 

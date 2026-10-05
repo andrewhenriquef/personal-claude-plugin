@@ -113,6 +113,6 @@ for _, r := range rows {
 
 ## Hand-offs
 
-- Goroutine leaks, missing timeouts, retries, and unbounded concurrency as a failure risk belong to a reliability review. Report them here only for their cost in time or memory.
+- Goroutine leaks, missing timeouts, retries, and unbounded concurrency as a failure risk belong to `reliability-analysis`. Report them here only for their cost in time or memory.
 - Indexes and constraints for a schema change belong to `data-and-migration-analysis`.
 - Linters that run on every change belong to `static-analysis`, when the project config enables them.

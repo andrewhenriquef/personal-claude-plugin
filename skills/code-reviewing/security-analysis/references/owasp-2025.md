@@ -13,7 +13,7 @@ Use in Step 3 of `security-analysis`. Read only the rows that match the slice. E
 | A07 | Authentication Failures | Can login, reset, or token flows be bypassed or brute-forced? Are sessions fixed, never expired, or not rotated on login? Is JWT signature or `alg` verified? Are tokens compared in constant time? |
 | A08 | Software or Data Integrity Failures | Does the code deserialize untrusted data (pickle, Marshal, YAML load, Java serialization)? Does it load code or updates without signature checks? Does it trust unsigned data in cookies or hidden fields? |
 | A09 | Security Logging and Alerting Failures | Are security events (login failure, access denied) lost? Do logs hold secrets or PII? Can user input forge log entries in a way that matters? Report logging gaps only with a concrete impact. |
-| A10 | Mishandling of Exceptional Conditions | Does an error path fail open (grant access on exception)? Does a caught error skip a security check? Do error messages leak internals? Is a partial failure left in an unsafe state? |
+| A10 | Mishandling of Exceptional Conditions | Does an error path fail open (grant access on exception)? Does a caught error skip a security check? Do error messages leak internals? Is a partial failure left in an unsafe state? For error handling that is not a security issue (timeouts, retries, leaks, observability), use `reliability-analysis`. |
 
 ## Cross-cutting questions
 

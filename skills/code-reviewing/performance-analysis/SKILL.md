@@ -28,7 +28,7 @@ This skill is read-only. Report findings. Do not change code unless the user ask
 
 - The user wants code made faster. Review first, then optimize as a separate step, with a benchmark.
 - The user wants the schema change checked for lock risk, backfills, or constraints. Use `data-and-migration-analysis`. This skill checks query shape and cost. Indexes that a schema change needs belong there.
-- The user wants timeouts, retries, leaks, or race conditions checked. That is a reliability review.
+- The user wants timeouts, retries, leaks, or race conditions checked. Use `reliability-analysis`.
 - The user wants style cleanup. Use `static-analysis`. If the project already enables a performance cop, it runs there.
 
 ## Process
