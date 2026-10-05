@@ -28,7 +28,7 @@ Three facts shape every step:
 ## When NOT to use
 
 - The user wants fixes applied. Review first, then fix as a separate step.
-- The user wants dependency CVE triage only. Use the project's scanner directly (`osv-scanner`, `bundler-audit`, `govulncheck`, `npm audit`).
+- The user wants dependency CVE triage, a new library reviewed, or packages updated. Use `dependency-analysis`.
 - General quality or style review. Use a general code review skill.
 
 ## Process
