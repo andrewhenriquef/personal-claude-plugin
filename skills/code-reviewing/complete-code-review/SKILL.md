@@ -1,6 +1,6 @@
 ---
 name: complete-code-review
-description: Run the right code-review skills on a change, each in its own Opus agent at high effort, then merge the reports and apply the fixes. Picks the skills from what changed (security-analysis, dependency-analysis, data-and-migration-analysis, reliability-analysis, test-analysis, performance-analysis, static-analysis), runs them in safe waves, validates and de-duplicates the findings, and applies the verified ones in a safe order with a checkpoint for each batch. Default scope is the current branch against main plus the uncommitted work. Named files narrow it. "Whole project" widens it. Use when the user asks for a full code review, "review my changes", "review this branch", "run all the reviews", or "review the whole project". Say "review only" to stop before any change is made.
+description: Run the right code-review skills on a change, each in its own Opus agent at high effort, then merge the reports and apply the fixes. Picks the skills from what changed (security-analysis, harness-code-review, dependency-analysis, data-and-migration-analysis, reliability-analysis, test-analysis, performance-analysis, static-analysis), runs them in safe waves, validates and de-duplicates the findings, and applies the verified ones in a safe order with a checkpoint for each batch. Default scope is the current branch against main plus the uncommitted work. Named files narrow it. "Whole project" widens it. Use when the user asks for a full code review, "review my changes", "review this branch", "run all the reviews", or "review the whole project". Say "review only" to stop before any change is made.
 ---
 
 # Complete Code Review
@@ -63,6 +63,7 @@ Scope: <default | files | full>, <N> files (<languages>)
 Intent: <one line, and how you found it>
 Plan:
 - security-analysis (parallel): <why>
+- harness-code-review (parallel): <why>
 - dependency-analysis (parallel): <why>
 - data-and-migration-analysis (queue 1): <why>
 - ...
@@ -119,7 +120,7 @@ If the user asked for review only, stop here.
 Read the "Apply" section of [references/merge-and-apply.md](references/merge-and-apply.md).
 
 1. Apply only the "Apply" group. Ask the user once, with all "Needs decision" items together, and apply those the user approves.
-2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `performance-analysis`, `test-analysis`, and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The linter runs on the final result.
+2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `harness-code-review`, `performance-analysis`, `test-analysis`, and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The linter runs on the final result.
 3. Before each batch, take a checkpoint. Spawn a `code-developer` agent (in Claude Code, `model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
 4. Never apply anything in the "Needs human check" group.
 5. Never commit.

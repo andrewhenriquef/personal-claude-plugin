@@ -59,9 +59,10 @@ Resolve with this priority, highest first:
 1. `security-analysis`
 2. `data-and-migration-analysis`
 3. `reliability-analysis`
-4. `test-analysis`
-5. `performance-analysis`
-6. `static-analysis` and `code-simplify`
+4. `harness-code-review`
+5. `test-analysis`
+6. `performance-analysis`
+7. `static-analysis` and `code-simplify`
 
 Rules:
 
@@ -133,9 +134,10 @@ One batch per review skill, one batch at a time:
 2. `data-and-migration-analysis`
 3. `security-analysis`
 4. `reliability-analysis`
-5. `performance-analysis`
-6. `test-analysis` (tests cover the final code)
-7. `static-analysis` (runs on the final result)
+5. `harness-code-review`
+6. `performance-analysis`
+7. `test-analysis` (tests cover the final code)
+8. `static-analysis` (runs on the final result)
 
 Skip a batch that has nothing to apply. If a later batch's finding sits on code that an earlier batch changed, the code-developer checks that the finding is still true. It skips the finding if not.
 

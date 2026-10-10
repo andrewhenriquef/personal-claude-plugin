@@ -27,6 +27,7 @@ Rules:
 | Skill | Group | Run when | Skip when |
 |---|---|---|---|
 | `security-analysis` | parallel | Any production code, and any build, CI, or infra file | Only tests, docs, or dependency manifests (the dependency skill covers those) |
+| `harness-code-review` | parallel | Any production code. It runs the harness's own reviewer (Claude Code `code-review`; Cursor `bugbot` and `security-review`) | Only tests, docs, config, or dependency manifests |
 | `dependency-analysis` | parallel | A dependency manifest or lockfile is in scope. In a full review: always, in Audit mode | No manifest in scope |
 | `data-and-migration-analysis` | queue | A migration or schema file is in scope, or the content signal for data access below matches | Neither |
 | `reliability-analysis` | queue | The content signal for failure handling below matches, or a job, a consumer, a webhook, or a concurrency primitive is in scope | Pure data structures, pure functions, config only |
@@ -36,6 +37,8 @@ Rules:
 | `code-simplify` | apply phase, on request | Only when the user asks for simplification or clean-up | Default |
 
 `static-analysis` does not review. It fixes. It runs in the apply phase (Step 6), last, not in Step 2. List it in the plan with its apply-phase position.
+
+`harness-code-review` overlaps other lenses on purpose (in Cursor, `security-review` covers ground that `security-analysis` covers). The merge records the agreement, and agreement raises confidence. In `complete-code-review` it runs review only: never `--fix`, never its simplify step.
 
 `code-simplify` also changes code. Leave it out unless the user asks. If the review finds heavy design smells, mention it in the report as a lead.
 
@@ -60,7 +63,7 @@ grep -lE '\.each\b|\.map\b|\.where\(|\.includes\(|\.joins\(|\.all\b|find_each|fo
 
 Also use the file path: `app/controllers/**`, `app/jobs/**`, `app/serializers/**`, `cmd/**`, `internal/**/handler*`, and `*_worker.*` point to request, job, and consumer paths.
 
-If the `grep` finds nothing for all three, and the change is production code, the change is probably small and local. Run `security-analysis`, `test-analysis`, and `static-analysis` only, and say so.
+If the `grep` finds nothing for all three, and the change is production code, the change is probably small and local. Run `security-analysis`, `harness-code-review`, `test-analysis`, and `static-analysis` only, and say so.
 
 ## Full review (the user asked for the entire project)
 

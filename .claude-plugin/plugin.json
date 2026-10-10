@@ -1,7 +1,7 @@
 {
   "name": "andrew-skills",
   "description": "Andrew's skills for development with Claude: PRD/story planning, interview-driven discovery, and code simplification.",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "author": {
     "name": "Andrew Oliveira"
   },
@@ -43,6 +43,7 @@
     "./skills/code-reviewing/performance-analysis",
     "./skills/code-reviewing/dependency-analysis",
     "./skills/code-reviewing/reliability-analysis",
-    "./skills/code-reviewing/complete-code-review"
+    "./skills/code-reviewing/complete-code-review",
+    "./skills/code-reviewing/harness-code-review"
   ]
 }

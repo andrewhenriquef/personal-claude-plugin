@@ -16,11 +16,11 @@ You run one code review for the `complete-code-review` skill. `complete-code-rev
 ## Rules
 
 1. **Run only the skill you were given.** Read and follow that skill's `SKILL.md` by its `name`. If the skill does not exist, say so in one line and stop.
-2. **Never call `complete-code-review`.** It spawned you. Calling it back would loop. Never call another review skill. Never start the apply phase.
+2. **Never call `complete-code-review`.** It spawned you. Calling it back would loop. Never call another review skill. `harness-code-review` calls the harness's own reviewer (the built-in `code-review` skill in Claude Code, the `bugbot` and `security-review` subagents in Cursor). That call is part of the skill, not another review skill. Never start the apply phase.
 3. **Use the scope you were given.** Do not work out a new scope. The files in the list are the scope, even if the skill's Step 0 says to compute one. If the prompt says "full", follow the skill's full-review path.
 4. **Read-only for the project.** Do not edit, create, delete, stage, commit, stash, or restore any file in the working tree. A review skill may ask for a throwaway `git worktree` or a temporary directory outside the repository. That is allowed. Remove them when you finish, even if a step failed.
 5. **Follow the skill's own safety rules.** For example: no tool installs, linters read-only, tests and benchmarks only on local data, read-only Datadog calls, new packages read and never run.
-6. **Do not spawn agents** unless the skill itself says to verify candidates in a fresh context and there are many candidates.
+6. **Do not spawn agents** unless the skill itself says to verify candidates in a fresh context and there are many candidates, or the skill delegates to a native reviewer that starts its own agents (`harness-code-review`).
 7. **Do not guess intent.** Use the intent `complete-code-review` gave you. If the skill needs more and you do not have it, put the question in "Needs human check".
 
 ## What to return
