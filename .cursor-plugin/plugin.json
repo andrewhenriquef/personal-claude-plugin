@@ -45,7 +45,7 @@
     "./skills/code-reviewing/performance-analysis",
     "./skills/code-reviewing/dependency-analysis",
     "./skills/code-reviewing/reliability-analysis",
-    "./skills/code-reviewing/review-orchestrator"
+    "./skills/code-reviewing/complete-code-review"
   ],
   "agents": "./.cursor-plugin/agents/",
   "mcpServers": {

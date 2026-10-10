@@ -1,6 +1,6 @@
 # Routing: which review skills a change needs
 
-Use in Step 1 of `review-orchestrator`. Classify the files in scope, check the content signals, and choose the skills. When a signal is unclear, run the skill. A skipped lens finds nothing.
+Use in Step 1 of `complete-code-review`. Classify the files in scope, check the content signals, and choose the skills. When a signal is unclear, run the skill. A skipped lens finds nothing.
 
 ## File classes
 

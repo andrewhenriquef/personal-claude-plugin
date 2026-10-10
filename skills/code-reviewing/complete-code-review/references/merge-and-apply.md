@@ -1,6 +1,6 @@
 # Snapshot, validate, merge, and apply
 
-Use in Steps 0, 2, 3, 4, 5, 6, and 7 of `review-orchestrator`. Write temporary files to a temporary directory, not into the repository: `tmp=$(mktemp -d)`.
+Use in Steps 0, 2, 3, 4, 5, 6, and 7 of `complete-code-review`. Write temporary files to a temporary directory, not into the repository: `tmp=$(mktemp -d)`.
 
 ## Tree snapshot
 
@@ -137,7 +137,7 @@ One batch per review skill, one batch at a time:
 6. `test-analysis` (tests cover the final code)
 7. `static-analysis` (runs on the final result)
 
-Skip a batch that has nothing to apply. If a later batch's finding sits on code that an earlier batch changed, the fixer checks that the finding is still true. It skips the finding if not.
+Skip a batch that has nothing to apply. If a later batch's finding sits on code that an earlier batch changed, the code-developer checks that the finding is still true. It skips the finding if not.
 
 ### Checkpoint and undo
 
@@ -148,7 +148,7 @@ Take a checkpoint before each batch. Do not use `git restore`, `git checkout`, `
 snap=$(git stash create); snap=${snap:-HEAD}       # holds tracked changes without touching the tree
 git ls-files --others --exclude-standard | sort > "$tmp/untracked-before.txt"
 
-# ... spawn the review-fixer agent for the batch, then run the focused tests ...
+# ... spawn the code-developer agent for the batch, then run the focused tests ...
 
 # after the batch
 git diff "$snap" > "$tmp/batch-N.patch"            # only what this batch changed in tracked files
@@ -169,10 +169,10 @@ If `git apply -R` fails, stop. Tell the user which batch and which file. Do not 
 
 ### Run
 
-1. Spawn one `review-fixer` agent per batch (`model` `opus`), with the prompt from `agent-prompts.md`. The `static-analysis` batch and the `dependency-analysis` batch use their own prompts.
+1. Spawn one `code-developer` agent per batch (`model` `opus`), with the prompt from `agent-prompts.md`. The `static-analysis` batch and the `dependency-analysis` batch use their own prompts.
 2. When the agent returns, run the project's tests for the files it changed.
 3. Tests pass: keep the batch. Tests fail: undo the batch, record it as "reverted" with the failing output, and go on.
-4. Findings that the fixer reports as "needs decision" join the question for the user. Ask once at the end of the apply phase if the user has not answered yet. Apply the approved ones as a last batch, with a checkpoint.
+4. Findings that the code-developer reports as "needs decision" join the question for the user. Ask once at the end of the apply phase if the user has not answered yet. Apply the approved ones as a last batch, with a checkpoint.
 
 ### Confirmation questions
 

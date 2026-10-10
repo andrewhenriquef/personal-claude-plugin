@@ -1,12 +1,12 @@
 # Agent prompts
 
-Use in Steps 2 and 6 of `review-orchestrator`. Fill the fields between `<` and `>`. Keep the prompt short. The agent definition (`review-runner`, `review-fixer`) already holds the rules. The prompt only gives the facts of this run.
+Use in Steps 2 and 6 of `complete-code-review`. Fill the fields between `<` and `>`. Keep the prompt short. The agent definition (`code-reviewer`, `code-developer`) already holds the rules. The prompt only gives the facts of this run.
 
 ## Spawn settings
 
 | Setting | Value |
 |---|---|
-| Agent type | `review-runner` for a review, `review-fixer` for a fix batch. In Claude Code they are listed as `andrew-skills:review-runner` and `andrew-skills:review-fixer` when the plugin is installed. In Cursor, spawn them by name through the Task tool |
+| Agent type | `code-reviewer` for a review, `code-developer` for a fix batch. In Claude Code they are listed as `andrew-skills:code-reviewer` and `andrew-skills:code-developer` when the plugin is installed. In Cursor, spawn them by name through the Task tool |
 | `model` | Claude Code: `opus`. Cursor: do not set it; the Cursor agent definition sets it |
 | Effort | High. It is set in the agent definition (the Agent call has no effort setting). Do not use a different agent type for a review, or the effort setting is lost |
 | Isolation | None. The review needs the real working tree, with the uncommitted changes |

@@ -1,9 +1,9 @@
 ---
-name: review-orchestrator
+name: complete-code-review
 description: Run the right code-review skills on a change, each in its own Opus agent at high effort, then merge the reports and apply the fixes. Picks the skills from what changed (security-analysis, dependency-analysis, data-and-migration-analysis, reliability-analysis, test-analysis, performance-analysis, static-analysis), runs them in safe waves, validates and de-duplicates the findings, and applies the verified ones in a safe order with a checkpoint for each batch. Default scope is the current branch against main plus the uncommitted work. Named files narrow it. "Whole project" widens it. Use when the user asks for a full code review, "review my changes", "review this branch", "run all the reviews", or "review the whole project". Say "review only" to stop before any change is made.
 ---
 
-# Review Orchestrator
+# Complete Code Review
 
 > Design draws on the [Claude Code code-review plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review) (parallel agents, a confidence filter, a check of each finding against the real code), the common multi-agent review pattern (specialist reviewers, a merge that de-duplicates and records which reviewers agree, and a validation pass that drops findings about code that is not there), and the [Claude Code subagent settings](https://code.claude.com/docs/en/sub-agents) (`model` and `effort` in the agent definition, parallel agents, nested depth).
 
@@ -75,7 +75,7 @@ Apply: <yes | no (review only)>
 
 Read [references/agent-prompts.md](references/agent-prompts.md) for the prompt of each agent.
 
-1. Spawn each review in its own agent: agent type `review-runner`. In Claude Code, set `model` to `opus`; the agent definition also sets effort to high, and the agent type is listed as `andrew-skills:review-runner` when the plugin is installed. In Cursor, spawn the `review-runner` subagent through the Task tool; its model comes from the Cursor agent definition. Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands.
+1. Spawn each review in its own agent: agent type `code-reviewer`. In Claude Code, set `model` to `opus`; the agent definition also sets effort to high, and the agent type is listed as `andrew-skills:code-reviewer` when the plugin is installed. In Cursor, spawn the `code-reviewer` subagent through the Task tool; its model comes from the Cursor agent definition. Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands.
 2. Start the whole parallel group in **one message**, so the agents run at the same time. You may start the first queued agent in the same message.
 3. Start each next queued agent when the previous queued agent returns. Run `performance-analysis` last, after every other agent has returned, so nothing else loads the machine during its measurements.
 4. If the user says "run them all in parallel", do it, and say that shared test databases and benchmark noise may affect the results of the skills in the queue.
@@ -120,7 +120,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 
 1. Apply only the "Apply" group. Ask the user once, with all "Needs decision" items together, and apply those the user approves.
 2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `performance-analysis`, `test-analysis`, and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The linter runs on the final result.
-3. Before each batch, take a checkpoint. Spawn a `review-fixer` agent (in Claude Code, `model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
+3. Before each batch, take a checkpoint. Spawn a `code-developer` agent (in Claude Code, `model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
 4. Never apply anything in the "Needs human check" group.
 5. Never commit.
 
@@ -145,14 +145,14 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 
 ## Red flags
 
-- A skill ran on a scope that the orchestrator did not give it.
+- A skill ran on a scope that `complete-code-review` did not give it.
 - A review agent changed the working tree and the run went on.
 - A finding was applied without a check against the real file.
 - An unverified finding was applied.
 - A batch was undone with `git restore`, `git checkout`, `git reset`, or `git stash pop`.
 - Two agents that run code ran at the same time, without the user asking for that.
 - `performance-analysis` ran while another agent was running.
-- A fixer disabled a lint rule, skipped a test, or added a scanner ignore entry.
+- A code-developer disabled a lint rule, skipped a test, or added a scanner ignore entry.
 - A fix for a major version bump, a schema change, or a data change was applied without the user's approval.
 - The report hides a conflict between two skills.
 - Anything was committed.
@@ -161,7 +161,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 
 - [ ] The scope, the files dropped, and the intent are stated.
 - [ ] The plan names every skill that ran, why, and every skill that did not run, and why.
-- [ ] Every review ran in its own `review-runner` agent on `opus`, with the scope given as a file list.
+- [ ] Every review ran in its own `code-reviewer` agent on `opus`, with the scope given as a file list.
 - [ ] The parallel group started in one message. The queue ran one agent at a time. `performance-analysis` ran last.
 - [ ] The tree was compared with the snapshot after each review agent.
 - [ ] Every finding was checked against the real file before it was merged or applied.
