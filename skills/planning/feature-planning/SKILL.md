@@ -19,7 +19,7 @@ Not a feature spec — a conversation starter that captures *who* benefits, *wha
 
 Anything supplied with the invocation — text after the skill name, a pasted context dump, an `ARGUMENTS:` line — counts as answers already given. Use it, don't re-ask.
 
-**Arriving empty-handed works too.** Run Step 0's `product-designer` discovery to settle who the user is and what they're trying to accomplish before drafting, rather than asking ad hoc.
+**Arriving empty-handed works too.** Run Step 0 to settle who the user is and what they're trying to accomplish before drafting, rather than asking ad hoc. In Claude Code that step spawns `product-designer`. In Cursor it runs in this thread.
 
 ## Anti-pattern: no technical questions
 
@@ -33,11 +33,15 @@ When `prd-development` or story drafting surfaces a technical detail:
 
 ## Orchestration
 
-This skill reuses other skills in sequence. Do not reimplement their logic — invoke them with the `Skill` tool.
+This skill reuses other skills in sequence. Do not reimplement their logic — invoke them with the `Skill` tool (in Cursor, which has no `Skill` tool, read and follow that skill's `SKILL.md` by name). Subagent calls below are written as Claude Code `Agent(subagent_type: ...)` calls; in Cursor, spawn the subagent with the same name through the Task tool. Step 0 is the exception: in Cursor it stays in this thread.
 
 ### Step 0 — Discovery (when arriving light on context): `product-designer`
 
-If the input has no clear persona, flow, or problem statement yet — a bare task description, a one-line idea, or truly empty-handed — run discovery first instead of letting `prd-development` guess or Step 2 fill it in piecemeal. Call `Agent(subagent_type: "product-designer", prompt: <task description, or a note that none was given>)`. It interviews the user directly (via `interview`) to settle persona (who/what calls or uses this), flow, and problem statement, and returns them synthesized.
+If the input has no clear persona, flow, or problem statement yet — a bare task description, a one-line idea, or truly empty-handed — run discovery first instead of letting `prd-development` guess or Step 2 fill it in piecemeal.
+
+In Claude Code, spawn the `product-designer` subagent: `Agent(subagent_type: "product-designer", prompt: <task description, or a note that none was given>)`. It interviews the user directly (via `interview`) to settle persona (who/what calls or uses this), flow, and problem statement, and returns them synthesized.
+
+In Cursor, run that discovery in this thread. A Cursor subagent cannot hold a live interview, so do not spawn `product-designer`. Read and follow the `interview` skill until persona (who/what calls or uses this), flow, and problem statement are settled, then write the Discovery handoff yourself: persona as a consumer of the system, flow as calls/events/decisions, problem statement, and open assumptions.
 
 Skip this step entirely when the input already states persona, flow, and problem clearly — don't re-interview for context that's already given.
 
@@ -59,7 +63,7 @@ Once the PRD is complete (Steps 1–2 done, no open questions outstanding), ask 
 
 ### Step 4 — PRD specialist review: `pm-reviewer`, `tech-lead-reviewer`, `qa-reviewer`
 
-Once Step 3's PRD file exists, run all three specialist review agents against it in parallel: `Agent(subagent_type: "pm-reviewer", prompt: <path to docs/<TAG>/PRD.md>)`, `Agent(subagent_type: "tech-lead-reviewer", prompt: <same path>)`, `Agent(subagent_type: "qa-reviewer", prompt: <same path>)`. Each is read-only and returns findings only — none of them edit the PRD.
+Once Step 3's PRD file exists, run all three specialist review subagents against it in parallel, all started in the same message: `Agent(subagent_type: "pm-reviewer", prompt: <path to docs/<TAG>/PRD.md>)`, `Agent(subagent_type: "tech-lead-reviewer", prompt: <same path>)`, `Agent(subagent_type: "qa-reviewer", prompt: <same path>)`. Each is read-only and returns findings only — none of them edit the PRD.
 
 For each finding returned:
 - **Mechanical fix** (typo, inconsistent term, broken reference) — apply directly to `docs/<TAG>/PRD.md`.

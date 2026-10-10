@@ -6,8 +6,8 @@ Use in Steps 2 and 6 of `review-orchestrator`. Fill the fields between `<` and `
 
 | Setting | Value |
 |---|---|
-| Agent type | `review-runner` for a review, `review-fixer` for a fix batch. Listed as `andrew-skills:review-runner` and `andrew-skills:review-fixer` when the plugin is installed |
-| `model` | `opus` |
+| Agent type | `review-runner` for a review, `review-fixer` for a fix batch. In Claude Code they are listed as `andrew-skills:review-runner` and `andrew-skills:review-fixer` when the plugin is installed. In Cursor, spawn them by name through the Task tool |
+| `model` | Claude Code: `opus`. Cursor: do not set it; the Cursor agent definition sets it |
 | Effort | High. It is set in the agent definition (the Agent call has no effort setting). Do not use a different agent type for a review, or the effort setting is lost |
 | Isolation | None. The review needs the real working tree, with the uncommitted changes |
 | Parallel | Start the parallel group in one message. Start queue agents one at a time |

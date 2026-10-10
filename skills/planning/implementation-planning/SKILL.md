@@ -11,6 +11,8 @@ Turn product-level user stories into a technical implementation plan, written ba
 
 Not a spec-writing skill and not a coding skill. It plans *how* the story gets built; it does not write production code, open a PR, or re-litigate *what* the story is.
 
+Skill calls below are written as Claude Code `Skill(skill: ...)` calls. In Cursor, which has no `Skill` tool, read and follow that skill's `SKILL.md` by name.
+
 ## Input
 
 **Required:** `<TAG>` — the ticket tag/slug identifying `docs/<TAG>/`, the folder `feature-planning` / `user-story` wrote the story files into. Without it, the correct folder can't be resolved — ask for it before doing anything else.
@@ -39,7 +41,7 @@ Require `<TAG>` before proceeding — if missing, ask for it, don't guess or sea
 
 - **`<STORY_ID>`(s) or explicit filename(s) given** — resolve directly to `docs/<TAG>/user_story_<N>.md` for each and run Steps 2 through 7 yourself, including the cross-story consistency check.
 - **Nothing given, exactly one `user_story_*.md` exists** — unambiguous. Run Steps 2 through 7 yourself (Step 7 will no-op per its own single-file skip rule).
-- **Nothing given, more than one `user_story_*.md` exists** — fan out instead of asking which one or processing any of them yourself. For each story file, launch one agent in parallel: `Agent(subagent_type: "senior-dev", prompt: "<TAG> <STORY_ID>")`, one `Agent` call per story, all issued in the same message so they run concurrently — same pattern as `feature-planning`'s parallel review step. Each `senior-dev` does the equivalent of Steps 2-6 for its own story only, directly (it does not call back into this skill, and never runs `interview` itself — a background agent can't hold a live back-and-forth with the user). Once every spawned agent has finished, skip Steps 2-6 yourself and:
+- **Nothing given, more than one `user_story_*.md` exists** — fan out instead of asking which one or processing any of them yourself. For each story file, launch one `senior-dev` subagent in parallel: `Agent(subagent_type: "senior-dev", prompt: "<TAG> <STORY_ID>")` in Claude Code (in Cursor, the Task tool with subagent `senior-dev` and the same prompt), one call per story, all issued in the same message so they run concurrently — same pattern as `feature-planning`'s parallel review step. Each `senior-dev` does the equivalent of Steps 2-6 for its own story only, directly (it does not call back into this skill, and never runs `interview` itself — a background agent can't hold a live back-and-forth with the user). Once every spawned agent has finished, skip Steps 2-6 yourself and:
   1. Relay each agent's report to the user (story, changed-flow vs new-feature, 🔧 tags resolved).
   2. For anything an agent reported as **Blocked** (a product-level ambiguity, or a real technical fork it couldn't settle), call `Skill(skill: "interview", args: <the blocked question(s)>)` yourself — you're in the main thread and can. Once answered, patch that resolved detail directly into the affected story's `## Implementation Details` (and remove its 🔧 tag) — you don't need to re-spawn the agent for a one-field fix.
   3. Run Step 7 once, yourself, against every story with an `## Implementation Details` section — a story an agent couldn't finish at all just has none yet, and Step 7 already skips those.

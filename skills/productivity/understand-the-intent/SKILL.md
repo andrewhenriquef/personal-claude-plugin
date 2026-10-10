@@ -26,13 +26,13 @@ From the start, keep a running record. You need it for `intent.md`:
 
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round, then wait for the user's answers before the next round.
 
-`AskUserQuestion` allows at most 4 questions per call and 4 options per question. If the frontier has more than 4 decisions, split it across multiple `AskUserQuestion` calls issued together in the same round, never trim the frontier to fit the limit. For each question, put your recommended answer as the first option, labeled "(Recommended)", per the tool's own convention, don't just state it in prose.
+Ask with the structured-question tool: `AskUserQuestion` in Claude Code, `AskQuestion` in Cursor. `AskUserQuestion` allows at most 4 questions per call and 4 options per question. If the frontier has more than 4 decisions, split it across multiple calls issued together in the same round, never trim the frontier to fit the limit. For each question, put your recommended answer as the first option, labeled "(Recommended)", per the tool's own convention, don't just state it in prose.
 
 Every question also carries a last option **"Leave as open assumption"** (in Portuguese: "Deixar como suposição em aberto"). This leaves at most 3 real options per question.
 
 Each round, the user's answers reshape the tree: settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
 
-Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch it to the `Explore` agent (or `fork` if it needs your conversation context) via the `Agent` tool; don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the agent to report; ask the rest of the frontier now. The _decisions_ are the user's: put each to them and wait.
+Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch it to the `Explore` agent (or `fork` if it needs your conversation context) via the `Agent` tool in Claude Code, or to an explore subagent via the Task tool in Cursor; don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the agent to report; ask the rest of the frontier now. The _decisions_ are the user's: put each to them and wait.
 
 ## No silent open assumptions
 

@@ -1,0 +1,16 @@
+{
+  "name": "andrew-plugins",
+  "owner": {
+    "name": "Andrew Oliveira"
+  },
+  "metadata": {
+    "description": "Andrew's personal Claude Code and Cursor plugin marketplace."
+  },
+  "plugins": [
+    {
+      "name": "andrew-skills",
+      "source": "./",
+      "description": "Andrew's skills for development with Claude"
+    }
+  ]
+}

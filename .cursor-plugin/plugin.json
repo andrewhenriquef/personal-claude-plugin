@@ -5,6 +5,8 @@
   "author": {
     "name": "Andrew Oliveira"
   },
+  "repository": "https://github.com/andrewhenriquef/personal-claude-plugin",
+  "license": "MIT",
   "keywords": [
     "planning",
     "prd",
@@ -44,5 +46,24 @@
     "./skills/code-reviewing/dependency-analysis",
     "./skills/code-reviewing/reliability-analysis",
     "./skills/code-reviewing/review-orchestrator"
-  ]
+  ],
+  "agents": "./.cursor-plugin/agents/",
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp?client=andrew-skills-plugin",
+      "headers": {
+        "Authorization": "${CONTEXT7_API_KEY}"
+      }
+    }
+  },
+  "variables": {
+    "type": "object",
+    "properties": {
+      "CONTEXT7_API_KEY": {
+        "type": "string",
+        "title": "CONTEXT7_API_KEY",
+        "default": ""
+      }
+    }
+  }
 }

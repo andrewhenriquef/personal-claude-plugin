@@ -75,7 +75,7 @@ Apply: <yes | no (review only)>
 
 Read [references/agent-prompts.md](references/agent-prompts.md) for the prompt of each agent.
 
-1. Spawn each review in its own agent: agent type `review-runner`, with `model` set to `opus`. The agent definition also sets effort to high. The agent type is listed as `andrew-skills:review-runner` when the plugin is installed. Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands.
+1. Spawn each review in its own agent: agent type `review-runner`. In Claude Code, set `model` to `opus`; the agent definition also sets effort to high, and the agent type is listed as `andrew-skills:review-runner` when the plugin is installed. In Cursor, spawn the `review-runner` subagent through the Task tool; its model comes from the Cursor agent definition. Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands.
 2. Start the whole parallel group in **one message**, so the agents run at the same time. You may start the first queued agent in the same message.
 3. Start each next queued agent when the previous queued agent returns. Run `performance-analysis` last, after every other agent has returned, so nothing else loads the machine during its measurements.
 4. If the user says "run them all in parallel", do it, and say that shared test databases and benchmark noise may affect the results of the skills in the queue.
@@ -120,7 +120,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 
 1. Apply only the "Apply" group. Ask the user once, with all "Needs decision" items together, and apply those the user approves.
 2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `performance-analysis`, `test-analysis`, and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The linter runs on the final result.
-3. Before each batch, take a checkpoint. Spawn a `review-fixer` agent (`model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
+3. Before each batch, take a checkpoint. Spawn a `review-fixer` agent (in Claude Code, `model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
 4. Never apply anything in the "Needs human check" group.
 5. Never commit.
 

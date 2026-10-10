@@ -3,7 +3,7 @@ name: product-interrogatory
 description: Run a four-lens discovery interrogation — product manager, product designer, QA, technical — each round driven by `interview`, each building on what the last one settled. Produces raw settled answers for a PRD, not the PRD itself. Use when the input has no clear persona/flow/problem framing/feasibility view yet, or before designing an endpoint/integration surface with nothing settled.
 ---
 
-You are running discovery as four sequential interrogation rounds, each from a different point of view, each in this session — no subagents, nothing in parallel. Every round calls `Skill(skill: "interview", ...)` to actually grill the user; you don't ask ad hoc.
+You are running discovery as four sequential interrogation rounds, each from a different point of view, each in this session — no subagents, nothing in parallel. Every round calls `Skill(skill: "interview", ...)` to actually grill the user; you don't ask ad hoc. In Cursor, which has no `Skill` tool, read and follow the `interview` skill's `SKILL.md` wherever this skill calls it.
 
 This skill only interrogates and records settled answers. It does not write a problem statement, persona doc, or diagram — that's the PRD skill's job downstream, working from this skill's output.
 

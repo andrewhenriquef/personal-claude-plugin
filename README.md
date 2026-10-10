@@ -1,6 +1,6 @@
-# Andrew's Claude Code Skills
+# Andrew's Claude Code and Cursor Skills
 
-Personal Claude Code plugin marketplace. Skills for PRD/story planning, idea interviewing, and code simplification.
+Personal plugin marketplace for Claude Code and Cursor. Skills for PRD/story planning, idea interviewing, code review, and code simplification. The same skills, agents, and MCP servers install in both tools.
 
 ## Skills
 
@@ -50,7 +50,7 @@ Personal Claude Code plugin marketplace. Skills for PRD/story planning, idea int
 | [prd-development](https://github.com/deanpeters/Product-Manager-Skills/tree/main/skills/prd-development) | Build a structured PRD connecting problem, users, solution, and success criteria. Drives Step 1 of `feature-planning`. |
 | [user-story](https://github.com/deanpeters/Product-Manager-Skills/tree/main/skills/user-story) | Create user stories with Mike Cohn format and Gherkin acceptance criteria. Drives Step 5 of `feature-planning`. |
 
-Install:
+Install in Claude Code:
 
 ```
 /plugin marketplace add deanpeters/Product-Manager-Skills
@@ -58,7 +58,17 @@ Install:
 /plugin install user-story@pm-skills
 ```
 
+Install in Cursor: Cursor has no cross-plugin dependencies, and `pm-skills` ships no Cursor plugin manifest, so copy the two skills into your user skills folder:
+
+```
+git clone --depth 1 https://github.com/deanpeters/Product-Manager-Skills /tmp/pm-skills
+mkdir -p ~/.cursor/skills
+cp -R /tmp/pm-skills/skills/prd-development /tmp/pm-skills/skills/user-story ~/.cursor/skills/
+```
+
 ## Install
+
+### Claude Code
 
 Add marketplace:
 
@@ -71,6 +81,25 @@ Install plugin:
 ```
 /plugin install andrew-skills@andrew-plugins
 ```
+
+### Cursor
+
+1. Open **Customize** in the sidebar, then **From GitHub Repository**.
+2. Enter `andrewhenriquef/personal-claude-plugin`.
+3. Install the `andrew-skills` plugin.
+4. Optional: set `CONTEXT7_API_KEY` in **Plugins → Configure** for higher context7 rate limits. context7 works without it.
+
+Generated Cursor agents rewrite Claude Code `Skill` calls into reading that skill's `SKILL.md`. Shared skills name `AskQuestion` and the Task tool where Claude Code uses `AskUserQuestion` and `Agent`. Agents use `model: inherit`. In Cursor, `feature-planning` Step 0 stays in the main thread, because a subagent cannot hold the discovery interview.
+
+## Maintaining
+
+The Claude Code files are the source of truth: `.claude-plugin/`, `.mcp.json`, and `agents/`. The Cursor files in `.cursor-plugin/` are generated from them. Never edit `.cursor-plugin/` by hand. After you change a Claude file, run:
+
+```
+python3 scripts/sync_cursor.py
+```
+
+`python3 scripts/sync_cursor.py --check` exits non-zero when the Cursor files are stale. The script maps the Claude `model` alias to a Cursor model (`MODEL_MAP`), marks an agent `readonly` when its `tools` list has no `Write`, `Edit`, or `Bash`, rewrites `Skill` tool calls in the generated agents, keeps marketplace entries to the fields the Cursor schema allows, and rewrites `${VAR:-default}` in `.mcp.json` to a Cursor plugin variable.
 
 ## License
 
