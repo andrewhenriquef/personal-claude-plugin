@@ -12,9 +12,9 @@ This is the first skill of the `continuous-integration` family:
 | Skill | Job |
 |---|---|
 | `scan-pipelines` | This skill. Inventory, drift, and gaps. Read-only |
-| `build-pipelines` | Planned. Sets up each check to run locally in Docker |
-| `document-pipelines` | Planned. Writes the checks, setup, and run commands to a docs file |
-| `run-pipelines` | Planned. Runs the checks from that docs file |
+| `build-pipelines` | Sets up each check to run locally in Docker |
+| `document-pipelines` | Writes the checks, setup, and run commands to `docs/pipelines.md` |
+| `run-pipelines` | Runs the checks from that docs file, on changed files by default |
 
 ## Why this process
 
@@ -167,7 +167,7 @@ Must first, then should, then could.
 - <item you could not verify, and why> (for example branch protection without `gh`).
 
 ### Next step
-`build-pipelines` (planned) sets up these checks in Docker. `document-pipelines` (planned) writes them to a docs file.
+`build-pipelines` sets up these checks in Docker. `document-pipelines` writes them to `docs/pipelines.md`.
 ```
 
 If the repo has no checks at all, say so plainly. Then list the must-priority suggestions only.
