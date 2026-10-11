@@ -10,7 +10,7 @@ Markers are HTML comments, so they do not show when the Markdown renders:
 <!-- pipelines:<section>:end -->
 ```
 
-Sections, in order: `header`, `overview`, `prerequisites`, `setup`, `run`, `checks`, `ci-only`, `differences`, `manifest`.
+Sections, in order: `header`, `overview`, `baseline`, `prerequisites`, `setup`, `run`, `checks`, `ci-only`, `differences`, `manifest`.
 
 People may write their own text between sections (for example a "Troubleshooting" part). Keep it.
 
@@ -32,6 +32,26 @@ People may write their own text between sections (for example a "Troubleshooting
 |---|---|---|---|---|
 | [`<id>`](#<id>) | <category> | <yes / no / local only> | <yes / no> | `<source>` |
 <!-- pipelines:overview:end -->
+
+<!-- pipelines:baseline:start -->
+## Minimum baseline
+
+The checks every project must run (`scan-pipelines` baseline).
+
+| Item | Check | Runs in |
+|---|---|---|
+| Lint | [`<id>`](#<id>) | <CI + local / local only> |
+| Complexity | <check id, or "in `<lint id>` (`<config file:line>`)", or **missing**> | |
+| Security: code | | |
+| Security: secrets | | |
+| Dependency audit | | |
+| Unit tests | | |
+| Integration tests | <or "not applicable: no database, cache, or queue"> | |
+| Parallel tests | <parallel command in `<id>`, or "not needed"> | |
+| Coverage | [`coverage`](#coverage), minimum <min>% (measured <value>% on <date>) | |
+
+<If an item has no check: "**Missing.** Run `build-pipelines` to set it up.">
+<!-- pipelines:baseline:end -->
 
 <!-- pipelines:prerequisites:start -->
 ## Prerequisites
@@ -108,6 +128,7 @@ docker compose --profile pipelines run --rm <id> <changed>
 ```
 
 <If changed is null: "Runs the whole suite when a file matching `<files>` or one of <triggers> changes.">
+<If files is null: "Runs only in full mode, or when one of <triggers> changes.">
 
 Runs the whole suite when one of these changes: <triggers, or "none">.
 
@@ -152,7 +173,7 @@ checks:
     blocking: <blocking>
     full: '<full>'
     changed: '<changed>'         # or null
-    files: '<files>'
+    files: '<files>'             # or null
     triggers: [<triggers>]
     writes: <true / false>
     requires: [<VAR names>]

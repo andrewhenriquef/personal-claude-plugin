@@ -5,6 +5,7 @@ How `run-pipelines` turns changed files into commands.
 ## Matching
 
 - `files` is a regex on repo-relative paths. Match with extended regex (`grep -E`). An empty match list means the check has nothing to do in changed mode.
+- `files: null` means full mode only (coverage). In changed mode the check runs `full` only when a trigger changed.
 - `triggers` is a list of exact repo-relative paths. A path that ends with `/` matches anything under that directory.
 - Check triggers against all changed paths, deleted ones included. A deleted tool config is a trigger.
 
@@ -47,7 +48,7 @@ Rules:
 
 Cheap and fast first, so the report fills quickly:
 
-1. `format`, `lint`, `type-check`, `commit-lint`, `docs-lint`
+1. `format`, `lint`, `complexity`, `type-check`, `commit-lint`, `docs-lint`
 2. `secrets-scan`, `sast`, `ci-security`, `iac-scan`
 3. `dependency-audit`, `dependency-review`, `license-check`, `lockfile-sync`
 4. `build`, `generated-code`, `api-contract`
@@ -62,7 +63,7 @@ Within a group, `blocking: required` first, then by `id`.
 
 | Category | Next |
 |---|---|
-| `format`, `lint`, `type-check` | `static-analysis` |
+| `format`, `lint`, `complexity`, `type-check` | `static-analysis` |
 | `sast`, `secrets-scan`, `ci-security`, `iac-scan` | `security-analysis`. For a leaked secret: rotate it first, then remove it from history |
 | `dependency-audit`, `dependency-review`, `license-check`, `lockfile-sync`, `container-scan`, `sbom` | `dependency-analysis` |
 | `migration-safety`, `schema-consistency` | `data-and-migration-analysis` |

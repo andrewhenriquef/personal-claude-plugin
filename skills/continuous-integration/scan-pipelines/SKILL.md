@@ -1,6 +1,6 @@
 ---
 name: scan-pipelines
-description: Read-only inventory of every quality check a project defines (lint, format, type check, tests, integration tests, coverage, security, secrets, dependency audit, migrations, containers, IaC, and more) across CI configs, task runners, git hooks, tool configs, containers, and bots, plus drift between them and suggestions for missing checks that fit the stack. Reports in chat only. Never runs a check, installs a tool, writes a file, or triggers remote CI. Use when the user asks what checks or pipelines a repo has, to audit CI, to list quality gates, or which checks are missing.
+description: Read-only inventory of every quality check a project defines (lint, complexity, format, type check, tests, integration tests, coverage, security, secrets, dependency audit, migrations, containers, IaC, and more) across CI configs, task runners, git hooks, tool configs, containers, and bots, plus drift between them, the status of the minimum baseline every project must run (lint, complexity, SAST, secrets, dependency audit, unit and integration tests, parallel tests when needed, coverage with a minimum), and suggestions for missing checks that fit the stack. For a check with no tool in the project, researches 2 to 4 candidates on GitHub (stars, last commit, latest release, activity status) and recommends one. Reports in chat only. Never runs a check, installs a tool, writes a file, or triggers remote CI. Use when the user asks what checks or pipelines a repo has, to audit CI, to list quality gates, or which checks are missing.
 ---
 
 # Scan Pipelines
@@ -15,6 +15,7 @@ This is the first skill of the `continuous-integration` family:
 | `build-pipelines` | Sets up each check to run locally in Docker |
 | `document-pipelines` | Writes the checks, setup, and run commands to `docs/pipelines.md` |
 | `run-pipelines` | Runs the checks from that docs file, on changed files by default |
+| `github-pipelines` | Adds the checks missing from GitHub Actions to a new workflow |
 
 ## Why this process
 
@@ -22,6 +23,7 @@ This is the first skill of the `continuous-integration` family:
 2. **CI is the contract.** The command in CI is the command that must pass. A README or Makefile command that differs from CI is drift, not a second truth.
 3. **The next skills need facts, not guesses.** `build-pipelines` and `document-pipelines` build on this inventory. Every record needs its exact command and its source line.
 4. **Suggestions must fit the stack.** A generic wishlist is noise. Each suggestion needs evidence from the repo that the check applies.
+5. **Some checks are not optional.** The minimum baseline is the floor for every project: static analysis (lint, complexity, SAST, secrets, dependency audit) and tests (unit, integration, parallel when needed, coverage with a minimum). The scan says plainly whether the project meets it.
 
 ## When to use
 
@@ -39,11 +41,12 @@ This is the first skill of the `continuous-integration` family:
 ## Rules that never change
 
 - **Read-only.** Do not run a check, install a tool, pull an image, write or edit a file, or trigger remote CI (`gh workflow run`, pipeline APIs, re-runs).
-- **Allowed commands:** `git` read commands, `ls`, `find`, `grep`, `cat`, `head`, `sed -n`, and `gh api` GET requests when `gh` is authenticated. Nothing else.
+- **Allowed commands:** `git` read commands, `ls`, `find`, `grep`, `cat`, `head`, `sed -n`, `gh auth status`, `gh api` GET requests when `gh` is authenticated, and `curl -fsSL` GET requests to `api.github.com` and to the package registries in the "Versions" section of `build-pipelines`' [tool-images.md](../build-pipelines/references/tool-images.md). Nothing else.
 - **Cite every check.** Each inventory row names its source as `file:line`. If you cannot point to a line, it is not in the inventory.
 - **No invented checks.** A tool in the dependencies with no command that runs it goes to Drift, not to the inventory.
 - **Secrets by name only.** Record the names of env vars and CI secrets. Never print a value, even if one is committed. If a value is committed, report it as a security finding by file and line, without the value.
 - **Suggestions need a signal.** Each suggestion names the file or dependency that shows it applies.
+- **New tools need research.** When the project has no tool for a suggested check, research the candidates with [references/tool-research.md](references/tool-research.md): stars, last commit, latest release, status. Show the status table and recommend exactly one. Never recommend from memory, and never a `stale` or `archived` tool.
 
 ## Process
 
@@ -119,9 +122,17 @@ Report each case with both sources:
 - A check is marked `allow_failure` or `continue-on-error` and nothing explains why.
 - A CI job is commented out or disabled.
 
-### Step 5: Find gaps
+### Step 5: Check the baseline, then find gaps
 
-Read [references/catalog.md](references/catalog.md). For each category:
+Read [references/baseline.md](references/baseline.md) first. For each baseline item:
+
+1. Decide if it applies, with the evidence ("applies when" column). If it does not apply, record `not applicable` and the evidence of absence.
+2. Match it to inventory checks. Record `met`, `partial`, or `missing`, and where it runs (`CI`, `local only`, or `CI + local`), with the check id and the `file:line` that shows it (for complexity, the config line that enables the rules; for coverage, the line that sets the minimum).
+3. Every `missing` or `partial` item becomes a suggestion with priority `must`.
+4. Parallel tests: decide `needed` or `not needed` from the signals in baseline.md. If you cannot tell, write "decided by build-pipelines" and say why.
+5. Coverage: record the minimum the project sets, if any. Do not guess the current coverage. `build-pipelines` measures it.
+
+Then read [references/catalog.md](references/catalog.md). For each category:
 
 1. Check whether the stack has the signal that makes the category apply.
 2. If it applies and no check covers it, add a suggestion.
@@ -129,7 +140,7 @@ Read [references/catalog.md](references/catalog.md). For each category:
 
 For each suggestion record: category, evidence (`file` or dependency), recommended tool, priority, and effort.
 
-- **Tool choice.** Prefer a tool already in the dependencies or configs. Then the ecosystem standard from the catalog. Do not suggest two tools for one category.
+- **Tool choice.** A tool already in the dependencies or configs wins, with no research. Otherwise research 2 to 4 candidates with [references/tool-research.md](references/tool-research.md), and put the recommended one in the suggestion. The others go in the Tool options section, not in the suggestions table. One suggestion per category.
 - **Priority.** Use the default in the catalog. Raise or lower it only with a reason from the repo, and state the reason.
 - **Effort.** `S`: add a step that uses existing config. `M`: new config or a service in CI. `L`: new infrastructure, a paid service, or a big first-run fix backlog.
 
@@ -148,6 +159,11 @@ Read: <list>.
 Not found: <list>.
 Skipped: <vendored / generated dirs>.
 
+### Baseline: <met | not met (N missing, M partial)>
+| # | item | status | runs in | check-id | evidence or reason |
+|---|---|---|---|---|---|
+One row per baseline item, in the order of baseline.md. `runs in`: `CI`, `local only`, or `CI + local`.
+
 ### Inventory (<N> checks)
 | id | category | tool@version | command | trigger | blocking | changed-files | local | source |
 |---|---|---|---|---|---|---|---|---|
@@ -159,18 +175,22 @@ Services and secrets per check (names only):
 - <what differs>: `<file:line>` vs `<file:line>`.
 
 ### Suggested checks
-| priority | category | tool | evidence | effort |
-|---|---|---|---|---|
-Must first, then should, then could.
+| priority | category | tool | evidence | effort | baseline |
+|---|---|---|---|---|---|
+Baseline items first, then must, should, could.
+
+### Tool options (new tools only)
+One status table per suggestion with no tool in the project, in the shape of tool-research.md. Recommended first (★), with the reason.
+`build-pipelines` asks which one to use.
 
 ### Needs human check
 - <item you could not verify, and why> (for example branch protection without `gh`).
 
 ### Next step
-`build-pipelines` sets up these checks in Docker. `document-pipelines` writes them to `docs/pipelines.md`.
+`build-pipelines` sets up these checks in Docker. `document-pipelines` writes them to `docs/pipelines.md`. Checks that run only locally: `github-pipelines` adds them to GitHub Actions.
 ```
 
-If the repo has no checks at all, say so plainly. Then list the must-priority suggestions only.
+If the repo has no checks at all, say so plainly. Then show the baseline table and the must-priority suggestions only.
 
 ## Common rationalizations
 
@@ -180,7 +200,10 @@ If the repo has no checks at all, say so plainly. Then list the must-priority su
 | "This repo surely runs tests in CI." | Cite the line or do not list it. |
 | "`.rubocop.yml` exists, so RuboCop is a check." | Only if something runs it. Otherwise it is Drift. |
 | "The Makefile and CI do the same thing." | Compare the commands. Flags and paths often differ. |
-| "Every repo needs every category." | Suggest only with a stack signal. |
+| "Everyone uses X, no need to look it up." | Popular tools get archived and replaced. Check the status in this run. |
+| "Every repo needs every category." | Suggest only with a stack signal. The baseline is the exception: it applies to every project, and items that do not apply still get a row with the evidence. |
+| "RuboCop runs, so complexity is covered." | Only if the `Metrics/` cops are enabled. Cite the config line. |
+| "Coverage runs, so the coverage item is met." | Only with a minimum that fails the run. No minimum is `partial`. |
 | "I will show the secret so the user can rotate it." | Never print a value. File and line are enough. |
 
 ## Red flags
@@ -188,7 +211,11 @@ If the repo has no checks at all, say so plainly. Then list the must-priority su
 - An inventory row with no `file:line`.
 - A command that is still `make lint` or `npm run test` and not resolved to the real tool call.
 - A suggestion with no evidence.
+- A report with no Baseline section, or a baseline item with no row.
+- A baseline item marked `met` with no `file:line`.
 - Two tools suggested for one category.
+- A recommended tool with no status table, or with status from memory.
+- A `stale` or `archived` tool recommended.
 - A secret value in the report.
 - Any command run that is not in the allowed list.
 - "Branch protection: required" with no `gh api` result behind it.
@@ -199,6 +226,8 @@ If the repo has no checks at all, say so plainly. Then list the must-priority su
 - [ ] Every inventory row has a resolved command and a `file:line`.
 - [ ] Duplicate checks are merged, with all sources listed.
 - [ ] Drift lists both sides of each mismatch.
+- [ ] Every baseline item has a row with a status and evidence, and every `missing` or `partial` item is a `must` suggestion.
 - [ ] Every suggestion has evidence, one tool, a priority, and an effort.
+- [ ] Every suggestion with no tool in the project has a status table from this run (stars, last commit, latest release, status), and exactly one recommended tool with a reason.
 - [ ] No secret values in the report.
 - [ ] No check was run and no file was written.

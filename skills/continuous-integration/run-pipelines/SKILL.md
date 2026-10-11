@@ -15,6 +15,7 @@ This is the fourth skill of the `continuous-integration` family:
 | `build-pipelines` | One compose service per check, with an `x-pipelines` block |
 | `document-pipelines` | Writes `docs/pipelines.md`, with the manifest |
 | `run-pipelines` | This skill. Runs the checks from the manifest |
+| `github-pipelines` | Adds the checks missing from GitHub Actions to a new workflow |
 
 ## Why this process
 
@@ -31,6 +32,7 @@ This is the fourth skill of the `continuous-integration` family:
 ## When NOT to use
 
 - The user wants a remote CI run. This skill never triggers remote CI.
+- The user wants the local checks added to GitHub Actions. Use `github-pipelines`.
 - The user wants findings fixed. Run this skill, then use the skill named in the report for each failure.
 
 ## Rules that never change
@@ -99,6 +101,7 @@ For each manifest entry, decide with the rules in selection.md:
 | A changed file matches `triggers` | Run `full`. Reason: the trigger file |
 | Files match `files`, `changed` is not null | Run `changed` with those files |
 | Files match `files`, `changed` is null | Run `full` |
+| `files` is null (full mode only), no trigger changed | Skip. Reason: full mode only, say "full" to run |
 | No file matches | Skip. Reason: no relevant change |
 | `writes: true`, and the mode is not fix | Skip. Reason: edits files, say "fix" to run |
 | A name in `requires` is not set | Skip. Reason: missing `<VAR>` |
@@ -120,12 +123,12 @@ Check `requires` without printing values: `[ -n "${VAR+x}" ]` in the shell, or `
 
 | Result | Meaning |
 |---|---|
-| `pass` | Exit code 0 |
-| `fail` | The tool ran and found problems (non-zero exit, tool output shows findings) |
-| `error` | The check could not run: image missing, compose error, exit 125, 126, or 127, service dependency unhealthy, network failure. Not a verdict on the code |
+| `pass` | Exit code 0, and the output shows the tool checked something (files inspected, examples run) |
+| `fail` | The tool ran and found problems: the tool's findings exit code, and findings in its own format in the output |
+| `error` | The check could not run: image missing, compose error, exit 125, 126, or 127, the tool's own error exit code, config or load error, service dependency unhealthy, network failure. Not a verdict on the code |
 | `skipped` | Not run, with the reason from Step 3 |
 
-A `fail` with no findings in the output (crash, out of memory, timeout) is an `error`. Read the log tail before you classify.
+Use the exit codes and output markers in "Reading a result" of `build-pipelines`' [tool-images.md](../build-pipelines/references/tool-images.md). A `fail` with no findings in the output (crash, out of memory, timeout) is an `error`. Exit 0 with nothing checked ("0 files", "No examples found") is an `error`, never a `pass`. Read the log tail before you classify.
 
 ### Step 6: Clean up
 

@@ -8,16 +8,19 @@ Categories used in the inventory and in the gap analysis. Each category says wha
 - **should**: a missing check here costs review time or lets a whole class of bugs through.
 - **could**: useful, but only after the must and should checks are in place.
 
-**Tool choice order:** a tool already in the repo (dependency, config, or image) → the ecosystem default in this table → a cross-language tool. Suggest one tool per category.
+**Tool choice order:** a tool already in the repo (dependency, config, or image) wins. Otherwise the tools in this table are the starting candidates for [tool-research.md](tool-research.md), which checks their status (stars, last commit, release) in this run and recommends one. Suggest one tool per category.
 
 Use the category names below as the `category` value in the inventory.
+
+**Minimum baseline:** some categories are part of the baseline every project must run. [baseline.md](baseline.md) lists them, and they are `must` whatever the default priority below says.
 
 ## Code
 
 | Category | Protects against | Applies when | Tools by ecosystem | Default priority |
 |---|---|---|---|---|
 | `format` | Diff noise, style review churn | Any source code | Go: `gofmt`/`gofumpt`. Ruby: RuboCop `Layout/` or `standardrb`. JS/TS: Prettier, Biome. Python: `ruff format`, Black. Shell: `shfmt`. Terraform: `terraform fmt` | should |
-| `lint` | Bug patterns, unsafe idioms | Any source code | Go: `golangci-lint`. Ruby: RuboCop with the extensions in the Gemfile. JS/TS: ESLint, Biome. Python: Ruff. Shell: ShellCheck. YAML: yamllint. Markdown: markdownlint | must |
+| `lint` | Bug patterns, unsafe idioms | Any source code | Go: `golangci-lint`. Ruby: RuboCop with the extensions in the Gemfile. JS/TS: ESLint, Biome. Python: Ruff. Shell: ShellCheck. YAML: yamllint. Markdown: markdownlint | must (baseline) |
+| `complexity` | Functions too complex to read, test, or change safely | Any source code | Go: `gocyclo`/`gocognit` in golangci-lint. Ruby: RuboCop `Metrics/` cops. JS/TS: ESLint `complexity`. Python: Ruff `C901`. Cross-language: lizard | must (baseline) |
 | `type-check` | Type errors at runtime | TypeScript, typed Python, Sorbet/RBS. Go and other compiled languages get this from `build` | `tsc --noEmit`, mypy, pyright, `srb tc`, Steep | must when the config exists, could otherwise |
 | `build` | Code that does not compile or package | Compiled languages, frontend bundles, Docker images, gems or packages that publish | `go build ./...`, `go vet ./...`, `npm run build`, `docker build`, `gem build` | must |
 
@@ -25,10 +28,11 @@ Use the category names below as the `category` value in the inventory.
 
 | Category | Protects against | Applies when | Tools | Default priority |
 |---|---|---|---|---|
-| `unit-test` | Regressions in logic | Any source code with a test directory or framework | RSpec, Minitest, `go test ./...`, Jest, Vitest, pytest | must |
-| `integration-test` | Broken contracts with DB, cache, queue, external APIs | Compose services, CI `services:`, DB config, HTTP clients | Same runners with real services. Testcontainers. Request specs | must when services exist |
+| `unit-test` | Regressions in logic | Any source code | RSpec, Minitest, `go test ./...`, Jest, Vitest, pytest | must (baseline) |
+| `integration-test` | Broken contracts with DB, cache, queue, external APIs | Compose services, CI `services:`, DB config, HTTP clients | Same runners with real services. Testcontainers. Request specs | must when services exist (baseline) |
 | `e2e-test` | Broken user flows | Web UI or public API with a deploy target | Playwright, Cypress, Capybara system specs | could, should for a customer-facing UI |
-| `coverage` | Untested new code | `unit-test` exists | SimpleCov with `minimum_coverage`, `go test -coverprofile` with a threshold, Jest `coverageThreshold`, Codecov patch status | should. Report a check with no threshold as partial |
+| `coverage` | Untested new code | `unit-test` exists | SimpleCov with `minimum_coverage`, `go test -coverprofile` with a threshold, Jest `coverageThreshold`, pytest-cov `--cov-fail-under`, Codecov patch status | must (baseline). The minimum is the current coverage. Report a check with no minimum as partial |
+| `parallel-test` | Suites too slow to run before every push | `unit-test` or `integration-test` exists and the baseline says parallel is needed | Rails `parallelize`, `parallel_tests`, `turbo_tests`, `pytest-xdist`, Jest/Vitest workers, Go `-p` | must when needed (baseline), could otherwise. Usually a property of the test check, not its own check |
 | `flaky-test` | Order-dependent or random failures | `unit-test` exists | Random order (`--order random`, `go test -shuffle=on`), repeat runs (`-count`), `rspec --bisect` | could |
 | `mutation-test` | Tests that pass without asserting | Critical domain code | mutant, go-mutesting, Stryker, mutmut | could. Never higher |
 
@@ -36,9 +40,9 @@ Use the category names below as the `category` value in the inventory.
 
 | Category | Protects against | Applies when | Tools | Default priority |
 |---|---|---|---|---|
-| `sast` | Injection, unsafe deserialization, auth bugs in code | Any server code | Ruby/Rails: Brakeman. Go: gosec (standalone or through golangci-lint). JS/TS: `eslint-plugin-security`, Semgrep. Python: Bandit. Cross-language: Semgrep, CodeQL | must for web or API services, should otherwise |
-| `secrets-scan` | Committed credentials | Always | Gitleaks, TruffleHog, GitHub secret scanning with push protection | must |
-| `dependency-audit` | Known vulnerable packages | Any lockfile | Go: `govulncheck`. Ruby: `bundler-audit`. JS: `npm audit`, `pnpm audit`, `yarn npm audit`. Python: `pip-audit`. Cross-language: OSV-Scanner, Trivy `fs` | must |
+| `sast` | Injection, unsafe deserialization, auth bugs in code | Any server code | Ruby/Rails: Brakeman. Go: gosec (standalone or through golangci-lint). JS/TS: `eslint-plugin-security`, Semgrep. Python: Bandit. Cross-language: Semgrep, CodeQL | must (baseline) |
+| `secrets-scan` | Committed credentials | Always | Gitleaks, TruffleHog, GitHub secret scanning with push protection | must (baseline) |
+| `dependency-audit` | Known vulnerable packages | Any lockfile | Go: `govulncheck`. Ruby: `bundler-audit`. JS: `npm audit`, `pnpm audit`, `yarn npm audit`. Python: `pip-audit`. Cross-language: OSV-Scanner, Trivy `fs` | must (baseline) |
 | `dependency-review` | New risky or vulnerable packages in a PR | GitHub repo with a lockfile | `actions/dependency-review-action` | should |
 | `license-check` | Licenses the company cannot ship | Distributed software, or a stated license policy | `license_finder`, `go-licenses`, `license-checker`, ScanCode, Trivy `--scanners license` | could, should for distributed software |
 | `sbom` | No record of what ships | Container images or packages that ship to customers | Syft, Trivy `sbom`, `cyclonedx-*` | could |

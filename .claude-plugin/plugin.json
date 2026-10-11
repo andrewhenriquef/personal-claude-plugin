@@ -51,6 +51,7 @@
     "./skills/continuous-integration/scan-pipelines",
     "./skills/continuous-integration/build-pipelines",
     "./skills/continuous-integration/document-pipelines",
-    "./skills/continuous-integration/run-pipelines"
+    "./skills/continuous-integration/run-pipelines",
+    "./skills/continuous-integration/github-pipelines"
   ]
 }

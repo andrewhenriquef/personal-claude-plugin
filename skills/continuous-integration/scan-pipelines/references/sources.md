@@ -8,6 +8,7 @@ Where a check can live, and what to extract from each source. Read every group. 
 |---|---|
 | `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/`, `.github/copilot-instructions.md` | Commands agents must run before a commit or a PR |
 | `README*`, `CONTRIBUTING*`, `docs/` | "How to test", "how to lint" sections. Compare them with CI in Drift |
+| `docs/pipelines.md` | Written by `document-pipelines`. Its manifest lists the local checks. Use it to cross-check group 6, not as a source on its own: the compose file is what runs |
 | `.github/pull_request_template.md` | Checklist items that imply a check (for example "ran migrations") |
 
 ## 2. CI configs
@@ -75,6 +76,7 @@ Ignore and baseline files (`.rubocop_todo.yml`, `.trivyignore`, `.gitleaksignore
 |---|---|
 | `Dockerfile*` | Base image and tag, `RUN` steps that run checks, multi-stage `test` or `lint` targets |
 | `docker-compose*.yml`, `compose*.yml` | Services (DB, cache, queue) and their images. Services with a `test`, `lint`, or `ci` profile or name |
+| Services with `profiles: [pipelines]` and an `x-pipelines` block | Checks set up by `build-pipelines`. One inventory record each: command from `full`, trigger `local only` unless a CI job runs the same tool (then merge, and list both sources), source the compose line. The tool counts as "in the project" for tool choice: no research |
 | `.devcontainer/devcontainer.json` | `postCreateCommand`, features, image |
 
 Record the images. `build-pipelines` reuses them.

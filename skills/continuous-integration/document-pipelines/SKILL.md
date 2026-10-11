@@ -17,6 +17,7 @@ This is the third skill of the `continuous-integration` family:
 | `build-pipelines` | One compose service per check, with an `x-pipelines` block |
 | `document-pipelines` | This skill. Writes `docs/pipelines.md` from those services |
 | `run-pipelines` | Runs the checks from `docs/pipelines.md`, on changed files by default |
+| `github-pipelines` | Adds the checks missing from GitHub Actions to a new workflow |
 
 ## Why this process
 
@@ -72,6 +73,7 @@ Then add, by reading only:
 - **What it protects:** one line per category. Use the "Protects against" column of the `scan-pipelines` catalog (`../scan-pipelines/references/catalog.md`).
 - **Network:** from the "Network" notes in `../build-pipelines/references/tool-images.md`.
 - **Local version:** from the image tag or the Dockerfile install line. Compare with `ci_version`.
+- **Baseline:** map each item of `scan-pipelines`' baseline (`../scan-pipelines/references/baseline.md`) to the checks by category. Complexity can be inside the lint check: cite the config line that enables it. Take the coverage minimum and the measured value from the comment above the `coverage` service in the raw compose file (comments are not in the `config` output). `Runs in` is `CI + local` when `source` points to a CI file, `local only` otherwise. An item with no check is **missing**. Do not decide "not applicable" or "not needed" yourself: copy it from the latest `scan-pipelines` or `build-pipelines` report in this session, or write "unknown, run `scan-pipelines`".
 - **CI-only checks:** read the CI config for checks with no service (for example CodeQL default setup, hosted SaaS checks). Name them in "Runs only in CI". Do not run `scan-pipelines` again for this. Read the CI files directly.
 
 Do not run any check.
