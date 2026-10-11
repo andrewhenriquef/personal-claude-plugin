@@ -6,6 +6,7 @@ How `run-pipelines` turns changed files into commands.
 
 - `files` is a regex on repo-relative paths. Match with extended regex (`grep -E`). An empty match list means the check has nothing to do in changed mode.
 - `files: null` means full mode only (coverage). In changed mode the check runs `full` only when a trigger changed.
+- `reads: <id>` means the check reads the report of `<id>`'s full run. Selecting the reader selects `<id>` in full mode, run first. The suite runs once.
 - `triggers` is a list of exact repo-relative paths. A path that ends with `/` matches anything under that directory.
 - Check triggers against all changed paths, deleted ones included. A deleted tool config is a trigger.
 

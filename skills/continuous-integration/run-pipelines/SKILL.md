@@ -60,6 +60,7 @@ This is the fourth skill of the `continuous-integration` family:
 2. Read the services: `docker compose --profile pipelines config --no-interpolate --format json`. `--no-interpolate` keeps secrets out of the output.
 3. Compare each manifest entry with the `x-pipelines` block of the service with the same `id`:
    - **Manifest entry with no service:** the service was removed or never built. Skip that check as `error`, and suggest `build-pipelines`.
+   - A field missing on one side equals `null` on the other (older docs have no `reads`).
    - **Service with no manifest entry, or a field differs:** the doc is stale. Tell the user, call `document-pipelines` to refresh it, and use the refreshed manifest. The compose file is what runs, so it wins.
 
 ### Step 2: Set the scope
@@ -105,7 +106,8 @@ For each manifest entry, decide with the rules in selection.md:
 | No file matches | Skip. Reason: no relevant change |
 | `writes: true`, and the mode is not fix | Skip. Reason: edits files, say "fix" to run |
 | A name in `requires` is not set | Skip. Reason: missing `<VAR>` |
-| The user named checks ("only rubocop") | Run only those |
+| The user named checks ("only rubocop") | Run only those, plus the check a named one `reads` (it writes the report) |
+| The check has `reads: <id>` and it is selected | Run `<id>` in full mode first, even when `<id>` alone would run `changed` or be skipped. Reason: `<check>` reads its report |
 
 Map changed source files to their tests for `unit-test` and `integration-test` checks, with the rules in selection.md. Report source files with no test found.
 
@@ -113,11 +115,12 @@ Check `requires` without printing values: `[ -n "${VAR+x}" ]` in the shell, or `
 
 ### Step 4: Run
 
-1. Order: the category order in selection.md (fast and cheap first: format, lint, secrets, then build and tests). Within a category, `blocking: required` first.
+1. Order: the category order in selection.md (fast and cheap first: format, lint, secrets, then build and tests). Within a category, `blocking: required` first. A check with `reads: <id>` runs right after `<id>`.
 2. Build the command: `docker compose --profile pipelines run --rm -T <id> <command>`, with `{files}` and `{dirs}` replaced as in selection.md. `-T` gives clean, non-interactive output. For `writes: true` checks, prefix it with `env UID="$(id -u)" GID="$(id -g)"`: shells do not export these, and without them Compose runs the check as `1000:1000`.
-3. Save each check's full output to a log in a temp directory outside the repo (`mktemp -d`). Record exit code and duration.
-4. One check at a time. Checks share test services, and parallel runs fight over them.
-5. **fail fast** (only when asked): stop after the first `blocking: required` failure.
+3. **Report readers.** Before the full run of a check that another check `reads`, record the time: `since=$(( $(date +%s) - 5 ))`. Run the reader with `env PIPELINES_SINCE="$since" docker compose ...`, so it rejects a report from an earlier run. If the source check is `error`, the reader is `error` too ("no report: `<id>` did not run"), and is not run. If the source check is `fail` (failing tests), the reader still runs: the report exists.
+4. Save each check's full output to a log in a temp directory outside the repo (`mktemp -d`). Record exit code and duration.
+5. One check at a time. Checks share test services, and parallel runs fight over them.
+6. **fail fast** (only when asked): stop after the first `blocking: required` failure.
 
 ### Step 5: Classify each result
 

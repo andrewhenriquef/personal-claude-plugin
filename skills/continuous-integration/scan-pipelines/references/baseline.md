@@ -63,7 +63,8 @@ Each worker needs its own database. Rails `parallelize` creates them. `parallel_
 - **The minimum is the current coverage.** `build-pipelines` measures line coverage from a full run of the suite and sets the minimum to that value, rounded down to one decimal (87.46% becomes 87.4%).
 - **Never lower an existing minimum.** If the project already has a minimum higher than the current coverage, keep it. If it is lower, the local check uses the current coverage, and the report suggests raising the project minimum.
 - **The scan cannot measure coverage** (it is read-only). It reports: no coverage (missing), coverage with no minimum (partial), or coverage with a minimum of N% (met, to be checked against the current value by `build-pipelines`).
-- With parallel tests, coverage must merge the results of all workers. If it cannot, the coverage check runs the suite serially.
+- **The suite runs once.** The test check writes the coverage report; the coverage check only reads it (`reads:` in `x-pipelines`), locally and in CI.
+- With parallel tests, coverage must merge the results of all workers. If it cannot, the test check that writes the report runs serially.
 
 ## Report shape
 

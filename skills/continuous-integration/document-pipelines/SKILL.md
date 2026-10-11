@@ -65,7 +65,7 @@ This is the third skill of the `continuous-integration` family:
 For each service, take from the merged config:
 
 - `id`: the service name.
-- From `x-pipelines`: `category`, `source`, `ci_version`, `blocking`, `full`, `changed`, `files`, `triggers`, `writes`, `requires`.
+- From `x-pipelines`: `category`, `source`, `ci_version`, `blocking`, `full`, `changed`, `files`, `triggers`, `writes`, `requires`, `reads` (null when the block has no `reads`).
 - Image or build (Dockerfile path), and the services it depends on.
 
 Then add, by reading only:

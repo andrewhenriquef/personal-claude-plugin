@@ -89,8 +89,11 @@ For each check to add, plan one job. Its id is the check id, so the status check
 5. **Services.** Each compose dependency service (for example `db-pipelines`) becomes a job `services:` entry with the same image and tag, the same test-only env values, a healthcheck in `options`, and a mapped port. Rewrite host names in the env from the compose service name to `localhost`.
 6. **Env.** Copy the variable names and test-only values from the compose service. Each `requires` name becomes `${{ secrets.NAME }}` at job level.
 7. **Command.** The manifest `full` command, unchanged. Use the same coverage gate (`docker/pipelines/coverage-gate.sh`) and the same minimum. A command that starts with `sh -c '...'` becomes the multi-line `run:` body.
-8. **Version check.** Compare each job's runtime and tool version with the local service (image tag, lockfile, Dockerfile). Any difference must be fixed in the plan, not reported.
-9. **Pins.** Look up the latest stable release and its commit SHA for every action you use (see workflow-patterns.md). If the lookup fails, ask the user. Never write a SHA from memory.
+8. **Report readers** (`reads: <id>`, the coverage check). The suite runs once in CI too:
+   - **`<id>` is added by this workflow:** its job uploads the report as an artifact after the tests, even when they fail (`if: ${{ !cancelled() }}`). The reader's job has `needs: <id>` and `if: ${{ !cancelled() }}`, downloads the artifact to the same path, sets up only the runtime the gate needs (no dependency install, no services), and runs the manifest `full` command: the gate. Pattern D in workflow-patterns.md.
+   - **`<id>` already runs in existing CI:** that job cannot be edited, so its report is not shared. The reader's job runs the `<id>` full command, then the gate, in one job. Report the double run, and suggest (not applied) an upload step in the existing job.
+9. **Version check.** Compare each job's runtime and tool version with the local service (image tag, lockfile, Dockerfile). Any difference must be fixed in the plan, not reported.
+10. **Pins.** Look up the latest stable release and its commit SHA for every action you use (see workflow-patterns.md). If the lookup fails, ask the user. Never write a SHA from memory.
 
 ### Step 3: Check the plan for conflicts
 
@@ -130,7 +133,7 @@ Run both on the new file only, with the pinned images from `build-pipelines`' to
 1. `docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:<v> .github/workflows/pipelines.yml`. Must pass.
 2. `docker run --rm -v "$PWD:/repo" -w /repo python:<v>-slim sh -c 'pip install -q zizmor==<v> && zizmor --offline --min-severity medium .github/workflows/pipelines.yml'`. No findings at medium or higher.
 3. Fix every finding in your file and run both again. Never silence a rule.
-4. Check for drift: every job's versions and command equal the local service's (Step 2.8).
+4. Check for drift: every job's versions and command equal the local service's (Step 2.9).
 
 ### Step 7: Run it on GitHub (needs approval)
 
@@ -222,6 +225,7 @@ Mark the PR ready for review when the findings are fixed, or merge it to start g
 - A secret value or a `${{ secrets.X }}` inside a `run:` line.
 - A job whose runtime, tool version, or command differs from the local service.
 - `continue-on-error: true` on a check job.
+- A coverage job that runs the test suite while the test job is in the same workflow. It must download the report.
 - A job for a check that existing CI already runs.
 - Status **Done** without a GitHub run, or with a GitHub verdict that differs from local.
 - A push, PR, or commit made without the user's approval.

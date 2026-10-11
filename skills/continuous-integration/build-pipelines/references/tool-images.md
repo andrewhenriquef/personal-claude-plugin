@@ -127,7 +127,7 @@ Exit codes of common tools:
 | Trivy | 0 | 0, or the `--exit-code` value | 1 with an error message | A vulnerability table. Without `--exit-code`, Trivy exits 0 even with findings: classify from the table |
 | `tsc --noEmit` | 0 | 1, 2 | 3, 4, or no `error TS` line |
 | lizard `-w` | 0 | non-zero with `warning:` lines | non-zero with no `warning:` line |
-| `coverage-gate.sh` (pattern 8) | 0 | 1 (below the minimum) | 2 (report missing or unreadable) | `file(line,col): error TS<code>` |
+| `coverage-gate.sh` (pattern 8) | 0 | 1 (below the minimum) | 2 (report missing, unreadable, or older than this run) | `file(line,col): error TS<code>` |
 
 For a tool not in this table, read its docs for the exit codes before you classify, and say which doc you used.
 
@@ -135,7 +135,7 @@ A finding is a fact about the code, not about your setup. Never fix it here. A b
 
 ## Reading coverage
 
-The coverage gate (pattern 8 in compose-patterns.md) prints `line coverage: <pct>% (minimum <min>%)`. Step 6 runs it once with minimum `0` to measure, then writes the minimum. Line coverage is the number used everywhere: SimpleCov `result.line` (older versions `result.covered_percent`), the Go `total:` line of `go tool cover -func`, Istanbul `total.lines.pct`, coverage.py `totals.percent_covered`.
+The coverage gate (pattern 8 in compose-patterns.md) reads the report the test check wrote, and prints `line coverage: <pct>% (minimum <min>%)`. Step 6 runs it once with minimum `0` to measure, then writes the minimum. It exits 2 on a missing report, or on one older than `PIPELINES_SINCE`. Line coverage is the number used everywhere: SimpleCov `result.line` (older versions `result.covered_percent`), the Go `total:` line of `go tool cover -func`, Istanbul `total.lines.pct`, coverage.py `totals.percent_covered`.
 
 ## Network
 

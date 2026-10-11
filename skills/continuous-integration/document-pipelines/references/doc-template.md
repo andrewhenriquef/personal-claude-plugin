@@ -129,6 +129,7 @@ docker compose --profile pipelines run --rm <id> <changed>
 
 <If changed is null: "Runs the whole suite when a file matching `<files>` or one of <triggers> changes.">
 <If files is null: "Runs only in full mode, or when one of <triggers> changes.">
+<If reads is set: "Runs no tests. Reads the report that [`<reads>`](#<reads>) writes in its full run, so run `<reads>` first. `run-pipelines` does this for you.">
 
 Runs the whole suite when one of these changes: <triggers, or "none">.
 
@@ -177,6 +178,7 @@ checks:
     triggers: [<triggers>]
     writes: <true / false>
     requires: [<VAR names>]
+    reads: <id or null>
 ```
 <!-- pipelines:manifest:end -->
 ````

@@ -140,19 +140,62 @@ Compose uses `tmpfs` for the database data. Job services are throwaway container
 
 Parallel test commands (pattern 9 in compose-patterns.md) run unchanged. The runner has the CPU count of its size, so the worker count can differ from a laptop. The test count must not.
 
-## Pattern D: coverage gate
+## Pattern D: coverage reads the test job's report
 
-The same gate script and minimum as the compose service. The runtime from Pattern A or C gives the script the interpreter it needs.
+The suite runs once, as it does locally (pattern 8 in compose-patterns.md). The test job uploads the report. The coverage job downloads it and runs only the gate. Two status checks, one suite run.
+
+In the test job (Pattern C), after the test step:
+
+```yaml
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}                   # also when tests fail: the coverage job still judges coverage
+        uses: actions/upload-artifact@<sha> # <tag>
+        with:
+          name: coverage-report
+          path: coverage/.last_run.json           # the report path in the gate command
+          if-no-files-found: error                # a crashed test run must not look like a missing upload
+          retention-days: 1
+```
+
+The coverage job:
+
+```yaml
+  coverage:
+    name: coverage
+    needs: rspec                                  # the check in `reads`
+    if: ${{ !cancelled() }}                       # run after failing tests too, as locally
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@<sha> # <tag>
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@<sha> # <tag>      # only the interpreter the gate needs: no bundler-cache, no services
+      - uses: actions/download-artifact@<sha> # <tag>
+        with:
+          name: coverage-report
+          path: coverage                          # same directory as the upload
+      - name: coverage (coverage)
+        run: sh docker/pipelines/coverage-gate.sh simplecov coverage/.last_run.json 87.4   # manifest `full`, unchanged
+```
+
+Rules:
+
+- `PIPELINES_SINCE` is not set in CI: the artifact comes from this run, so it cannot be stale.
+- When the test job crashes before the tests write a report, the upload fails (`if-no-files-found: error`), the download fails, and the coverage job fails. Classify it `broken` ("no report"), never a coverage verdict.
+- The gate needs the source for `go` reports (`go tool cover` reads the files) and the interpreter for the others: checkout plus the setup action, nothing more.
+- The upload path is the report file (or directory) in the gate command. Upload the directory for Go, Jest, Vitest, and pytest reports the same way.
+
+**When the test check already runs in an existing workflow**, that job cannot be edited, so nothing uploads the report. The coverage job then runs the test check's full command and the gate in one job, with the test job's services and setup (Pattern C):
 
 ```yaml
       - name: coverage (coverage)
         run: |
-          rm -f coverage/.last_run.json
-          bin/rails db:prepare && bundle exec rspec || true   # same as local: test failures are the rspec job's verdict
+          bin/rails db:prepare && bundle exec rspec || true   # the existing CI job owns the test verdict; this run only writes the report
           sh docker/pipelines/coverage-gate.sh simplecov coverage/.last_run.json 87.4
 ```
 
-`|| true` mirrors the `;` in the local command. Write it only when the local command has the `;`. Steps run with `bash -e`, so without it the step would stop before the gate.
+Report that the suite runs twice in CI, and suggest adding the upload step to the existing job.
 
 ## Pattern E: secrets
 

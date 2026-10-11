@@ -18,6 +18,7 @@ x-pipelines:
   triggers: []                                    # paths that force the full command when changed (lockfiles, configs)
   writes: false                                   # true if the command edits files (formatters, autocorrect)
   requires: []                                    # env var names that must be set (secrets)
+  reads: null                                     # id of the check whose full run writes the report this check reads (coverage); null otherwise
 ```
 
 Rules:
@@ -27,6 +28,7 @@ Rules:
 - `{dirs}` is replaced with the unique directories of those paths, as `./dir`. Use it for tools that work on packages (Go: `go test {dirs}`).
 - `changed: null` means: run `full` when any file matches `files` or `triggers`, skip otherwise.
 - `files: null` (with `changed: null`) means: full mode only. In changed mode the check runs only when a `triggers` path changed. Use it for whole-suite numbers that a partial run cannot judge, like coverage, so a one-file change does not run the whole suite twice.
+- `reads: <id>` means: this check does not run the tests. It reads the report that the full run of check `<id>` wrote in the same run, so the suite runs once. `run-pipelines` runs `<id>` in full mode first, then this check. Every path in this check's `triggers` must also be in the triggers of `<id>`.
 - Avoid `$` in `full` and `changed`. Compose interpolates `x-` fields too, so `$VAR` is replaced (or needs `$$`), and the doc and the manifest would show a different string. Put shell logic in a script under `docker/pipelines/` and call it, as the coverage gate does.
 - `triggers` lists files that change the result of the whole check: the tool config (`.rubocop.yml`), the lockfile (`Gemfile.lock`), the Dockerfile. A change there runs `full`.
 
@@ -262,19 +264,35 @@ For RuboCop, prefer lizard: a `.rubocop.yml` that disables the `Metrics/` cops w
 
 ## Pattern 8: coverage with a minimum (baseline)
 
-The `coverage` service runs the full suite with coverage, then a gate script fails when line coverage is under the minimum. The gate keeps the minimum out of the project's own config, so this skill never edits it.
+The suite runs once. The test check (`unit-test`, or the test check that runs the whole suite) writes the coverage report as part of its full run. The `coverage` check runs no tests: it reads that report and fails when line coverage is under the minimum. Two verdicts, one suite run, and the minimum stays out of the project's own config, so this skill never edits it.
 
-The gate, created once at `docker/pipelines/coverage-gate.sh`:
+### The report location
+
+The report must live where both services see it, locally and in CI, with the same path in both commands:
+
+- A **repo-relative directory that `.gitignore` already ignores** (`coverage/`, `tmp/`). Check with `git check-ignore -q <dir>/x`. Locally the bind mount shares it between the two containers. In GitHub Actions it is in the workspace, and the artifact carries it to the coverage job.
+- SimpleCov already writes to `coverage/` from the project's own setup. Use it as it is.
+- If no ignored directory fits, adding one to `.gitignore` is an app change: list it in Step 4 for approval. Do not edit `.gitignore` without it.
+
+### The gate
+
+Created once at `docker/pipelines/coverage-gate.sh`:
 
 ```sh
 #!/bin/sh
 # Managed by build-pipelines. Fails when line coverage is below the minimum.
 # Usage: coverage-gate.sh <simplecov|go|istanbul|coveragepy> <report> <minimum>
-# Exit: 0 at or above the minimum, 1 below it, 2 when the report cannot be read.
+# Exit: 0 at or above the minimum, 1 below it, 2 when the report cannot be read or is stale.
+# PIPELINES_SINCE (epoch seconds, optional): the report must be newer, so a crashed test run
+# cannot pass on an old report. run-pipelines sets it; 0 or unset skips the check.
 # No `set -e`: a failed read must exit 2 below, never 1.
 set -u
 kind=$1 report=$2 min=$3
-[ -f "$report" ] || { echo "coverage report not found: $report" >&2; exit 2; }
+[ -f "$report" ] || { echo "coverage report not found: $report (run the test check first)" >&2; exit 2; }
+since=${PIPELINES_SINCE:-0}
+if [ "$since" -gt 0 ] && [ "$(stat -c %Y "$report")" -lt "$since" ]; then
+  echo "coverage report is older than this run: $report (the test check did not write it)" >&2; exit 2
+fi
 case $kind in
   simplecov)  pct=$(ruby -rjson -e 'r = JSON.parse(File.read(ARGV[0]))["result"]; puts r["line"] || r["covered_percent"]' "$report") ;;
   go)         pct=$(go tool cover -func="$report" | awk '/^total:/ { sub(/%/, "", $3); print $3 }') ;;
@@ -287,7 +305,11 @@ echo "line coverage: ${pct}% (minimum ${min}%)"
 awk -v p="$pct" -v m="$min" 'BEGIN { exit !(p + 0 >= m + 0) }' || { echo "coverage ${pct}% is below the minimum ${min}%"; exit 1; }
 ```
 
-The service. `;` after the test command is on purpose: failing tests are the `unit-test` check's verdict. This check judges coverage only. Remove the old report first, so a crashed run cannot pass on a stale one.
+### The services
+
+The test check keeps its own command (pattern 4). With SimpleCov it already writes `coverage/.last_run.json`. Do not add cleanup to it: the gate's freshness check (`PIPELINES_SINCE`) rejects a report left by an earlier run, and the command stays equal to CI.
+
+The coverage check only reads it. It needs the runtime for the gate (Ruby here), not the database:
 
 ```yaml
   # coverage minimum 87.4%: measured 87.46% on 2026-10-11
@@ -295,42 +317,40 @@ The service. `;` after the test command is on purpose: failing tests are the `un
     <<: *pipelines-base
     extends:
       service: web
-    depends_on: !override
-      db-pipelines:
-        condition: service_healthy
+    depends_on: !reset []
     environment:
-      RAILS_ENV: test
-      DATABASE_URL: postgres://postgres:postgres@db-pipelines:5432/app_test
+      PIPELINES_SINCE: ${PIPELINES_SINCE:-0}
     x-pipelines:
       category: coverage
       source: suggested
       ci_version: null
       blocking: local-only
-      full: sh -c 'rm -f coverage/.last_run.json; bin/rails db:prepare && bundle exec rspec; sh docker/pipelines/coverage-gate.sh simplecov coverage/.last_run.json 87.4'
+      full: sh docker/pipelines/coverage-gate.sh simplecov coverage/.last_run.json 87.4
       changed: null
       files: null                                 # full mode only
-      triggers: [Gemfile.lock, .simplecov, spec/spec_helper.rb, spec/rails_helper.rb]
+      triggers: [Gemfile.lock, .simplecov, spec/spec_helper.rb]   # each one also in rspec's triggers
       writes: false
       requires: []
+      reads: rspec
 ```
 
-Test command and report by runner. Write reports to `/tmp` inside the container when the runner allows it, so the run leaves nothing in the repo:
+Report by runner. Add the report flags to the test check's command only when it does not write the report already. They must not change which tests run or their result. When the test check mirrors a CI job that has no such flags, list the flags under "Differences from CI":
 
-| Runner | Test command with coverage | Gate |
+| Runner | Test command writes the report with | Gate |
 |---|---|---|
-| RSpec, Minitest + SimpleCov | the CI test command (SimpleCov starts in the test helper) | `simplecov coverage/.last_run.json` |
-| Go | `go test -coverprofile=/tmp/cover.out ./...` | `go /tmp/cover.out` |
-| Jest | `npx jest --coverage --coverageReporters=json-summary --coverageDirectory=/tmp/coverage` | `istanbul /tmp/coverage/coverage-summary.json` |
-| Vitest | `npx vitest run --coverage.enabled --coverage.reporter=json-summary --coverage.reportsDirectory=/tmp/coverage` | `istanbul /tmp/coverage/coverage-summary.json` |
-| pytest + pytest-cov | `pytest --cov --cov-report=json:/tmp/coverage.json` | `coveragepy /tmp/coverage.json` |
+| RSpec, Minitest + SimpleCov | nothing to add (SimpleCov starts in the test helper; if it starts only on an env var such as `COVERAGE=true`, set it on the test service) | `simplecov coverage/.last_run.json` |
+| Go | `go test -coverprofile=coverage/cover.out ./...` | `go coverage/cover.out` |
+| Jest | `npx jest --coverage --coverageReporters=json-summary --coverageReporters=text --coverageDirectory=coverage` | `istanbul coverage/coverage-summary.json` |
+| Vitest | `npx vitest run --coverage.enabled --coverage.reporter=json-summary --coverage.reporter=text --coverage.reportsDirectory=coverage` | `istanbul coverage/coverage-summary.json` |
+| pytest + pytest-cov | `pytest --cov --cov-report=json:coverage/coverage.json --cov-report=term` | `coveragepy coverage/coverage.json` |
 
 Rules:
 
 - `{min}` starts as `0` in the plan. Step 6 measures and writes the real value, rounded down to one decimal, and the comment above the service.
 - A project minimum higher than the measured value wins (SimpleCov `minimum_coverage`, Jest `coverageThreshold`, `fail_under`). Use it in the gate.
-- SimpleCov writes `coverage/` in the repo. Check it is in `.gitignore`. If not, say so in the report. Do not edit `.gitignore`.
 - No coverage tool in the project (no SimpleCov, no pytest-cov): adding it is an app change. List it in Step 4 for approval.
-- `changed: null` and `files: null`: coverage is a whole-suite number. `run-pipelines` runs it in full mode, and in changed mode only when a trigger changed. The `unit-test` check covers the changed files.
+- Failing tests do not stop the gate: the test check reports them, and the report is still written. A test run that crashes writes no new report: the old one fails the freshness check, so the gate exits 2 (`error`), never a false pass. By hand, without `PIPELINES_SINCE`, run the test check right before the gate.
+- With parallel tests (pattern 9), the report must merge every worker. Check it in Step 6: the gate's percentage must match a serial run within 0.1 point.
 
 ## Pattern 9: parallel tests (baseline, when needed)
 

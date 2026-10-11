@@ -125,7 +125,7 @@ For each check also plan:
 - **New tool config.** Only for chosen suggestions that need one. Start from the tool's recommended preset. Never copy a config from another project.
 - **Baseline items.** Read [baseline.md](../scan-pipelines/references/baseline.md), and use the patterns for them in compose-patterns.md:
   - **Complexity** (pattern 7): if the linter config already enables the rules, the lint check covers it. Otherwise add a `complexity` service that turns the rules on from the command line, or runs lizard. Never edit the linter config.
-  - **Coverage** (pattern 8): a `coverage` service that runs the full suite with coverage and fails below the minimum. The minimum is a placeholder until Step 6 measures it. Say so in the plan.
+  - **Coverage** (pattern 8): the suite runs once. The test check writes the coverage report in its full run, and a `coverage` service with `reads: <test check id>` only runs the gate on that report. Pick a report directory that `.gitignore` already ignores. Add report flags to the test command only when it does not write the report already, and list them as a difference from CI. The minimum is a placeholder until Step 6 measures it. Say so in the plan.
   - **Parallel tests** (pattern 9): set it up now when the scan says `needed`. When the scan says "decided by build-pipelines", plan the serial suite, and decide in Step 6 from the measured time.
   - **Integration tests:** test services with the same engine and major version as CI (pattern 4).
   - **No tests in the repo:** do not add an empty test service. Report **Baseline not met: no tests**.
@@ -166,7 +166,7 @@ The work is done only when every new service passes this step. Run in this order
 2. `docker compose --profile pipelines pull --ignore-buildable <new services>`. Name the services, so the developer's own service images are not pulled to newer tags.
 3. `docker compose --profile pipelines build <new services that build>`.
 4. **Version.** For each new service, run the tool's version command from tool-images.md. It must print the version planned in Step 3. A different version is a bug in your file (wrong tag, wrong install line, app image not rebuilt).
-5. **Full run.** For each new service with `writes: false`, one at a time (`writes: true` services follow step 9): `docker compose --profile pipelines run --rm -T <id> <full>`. Save the output to a log in a temp directory outside the repo (`mktemp -d`). Record the exit code. Use a long timeout for test suites. Never shorten the command to make it faster.
+5. **Full run.** For each new service with `writes: false`, one at a time (`writes: true` services follow step 9): `docker compose --profile pipelines run --rm -T <id> <full>`. A service with `reads: <id>` runs right after that check's full run, with `PIPELINES_SINCE` set to the time that run started, minus 5 seconds: `env PIPELINES_SINCE=<epoch> docker compose ...`. Save the output to a log in a temp directory outside the repo (`mktemp -d`). Record the exit code. Use a long timeout for test suites. Never shorten the command to make it faster.
 6. **Changed-files run.** For each `writes: false` service with `changed` not null, pick one tracked file that matches `files` (`git ls-files | grep -E '<files>' | head -1`), put it in `{files}` (or its directory in `{dirs}`), and run `changed` the same way. If no tracked file matches, say so and skip this run.
 7. **Classify** each run with "Reading a result" in tool-images.md:
 
@@ -181,11 +181,12 @@ The work is done only when every new service passes this step. Run in this order
 10. **Parallel tests, when Step 3 left the decision here.** Read the duration of the serial full run of each test check. Over 5 minutes, parallel is needed. If the runner has no built-in parallel mode, research the parallel libraries and ask which one, as in Step 2. Show the parallel setup (pattern 9) and any app change it needs, wait for approval as in Step 4, apply it, and run steps 1 to 8 again for that check. Under 5 minutes, record `not needed` with the time.
 11. **Parallel check.** For every parallel test check, the parallel run must report the same number of tests as the serial run (no test lost between workers), and must be faster. If not, it is `broken`.
 12. **Coverage minimum.**
-    1. Take the step 5 run of the `coverage` service (placeholder minimum `0`). Read the line coverage from its log ("Reading coverage" in tool-images.md).
+    1. Take the step 5 gate run of the `coverage` service (placeholder minimum `0`), right after the test check's full run. Read the line coverage from its log ("Reading coverage" in tool-images.md).
     2. Minimum = that value rounded down to one decimal. If the project already sets a higher minimum, keep the project's.
     3. Write the minimum into the `full` command, with a comment above the service: `# coverage minimum <min>%: measured <value>% on <YYYY-MM-DD>`.
-    4. Run it again. It must be `pass` on the coverage gate. A failure there is `broken` (wrong report path, workers not merged).
-    5. If the suite has failing tests, coverage was measured anyway. Say so in the report, because the minimum may rise once they are fixed.
+    4. Run the gate again on the same report (no new test run), with the same `PIPELINES_SINCE`. It must be `pass`. A failure there is `broken` (wrong report path, workers not merged).
+    5. Prove the suite runs once: the coverage log shows no test output, only the gate line.
+    6. If the suite has failing tests, coverage was measured anyway. Say so in the report, because the minimum may rise once they are fixed.
 13. **Clean up.** Remove only the dependency services the runs started: `docker compose --profile pipelines rm -sf <service> ...`. Never `docker compose down`.
 
 A version command proves the tool starts. Only the full and changed runs prove the check works. `run-pipelines` uses these services later. It must never be the first to find a broken one.
@@ -268,6 +269,7 @@ docker compose --profile pipelines run --rm <check-id>
 | "I will add the job to CI too, it is one line." | Never edit CI. Report it as a CI suggestion. |
 | "The image tag looks right." | `docker manifest inspect` it. Wrong tags fail only on someone else's machine. |
 | "SimpleCov is the only option, no need to ask." | Show its status and ask. With one candidate the options are "Use it" and "Skip". |
+| "The coverage service can run the suite itself, it is simpler." | Then the suite runs twice in full mode. Read the test check's report. |
 | "The project has no coverage minimum, I will leave it that way." | Coverage is baseline. The minimum is the current coverage. |
 | "I will set the coverage minimum a bit lower, to leave room." | The minimum is the current value, rounded down to one decimal. Lower lets coverage drop. |
 | "Complexity is noisy, I will skip it." | Complexity is baseline. Existing findings are a backlog, not a reason to skip. |
@@ -295,6 +297,7 @@ docker compose --profile pipelines run --rm <check-id>
 - Outdated items missing from the report.
 - A report with no Baseline section, or a baseline item with no row.
 - A coverage minimum lower than the measured coverage rounded down, or lower than the project's own minimum.
+- A `coverage` service that runs the test suite itself instead of reading the test check's report.
 - A parallel run that reports fewer tests than the serial run.
 - A dependency or test-setup change that was not approved in the plan.
 - A new tool in the plan with no status table, or no question to the user.
@@ -313,6 +316,7 @@ docker compose --profile pipelines run --rm <check-id>
 - [ ] No `broken` check left, or the status is **Not done** with the cause.
 - [ ] Every applicable baseline item has a service with a verdict, or the report says **Baseline not met** and why.
 - [ ] The coverage minimum equals the measured coverage rounded down to one decimal (or the project's higher minimum), and the second run passes it.
+- [ ] The `coverage` service has `reads:` set and runs only the gate: the suite runs once per run.
 - [ ] Parallel tests are set up when needed, and report the same test count as the serial run.
 - [ ] The no-profile service list is unchanged.
 - [ ] No CI file and no existing service changed.
