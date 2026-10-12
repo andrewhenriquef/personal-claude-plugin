@@ -1,0 +1,79 @@
+# Minimise and bisect
+
+Use in Step 5 of `reproduce-bug`.
+
+Sources: [Zeller and Hildebrandt, Simplifying and Isolating Failure-Inducing Input](https://www.st.cs.uni-saarland.de/papers/tse2002/tse2002.pdf) (ddmin: shrink until removing any single element makes the failure go away; the cost grows with the square of the input in the worst case), [git bisect](https://git-scm.com/docs/git-bisect) (exit-code rules), and [mattpocock diagnosing-bugs](https://github.com/mattpocock/skills) (done when every remaining element is load-bearing).
+
+## Why minimise
+
+- Fewer moving parts means fewer suspects for `confirm-root-cause`.
+- The minimal case is the cleanest regression test.
+- It shows what the bug really depends on. A bug that needs a negative number and an empty list is a different bug than one that needs "a large order".
+
+## Manual reduction
+
+Cut **one thing at a time**. After each cut, run the loop.
+
+1. List the pieces: input fields, records in a fixture, steps in the setup, config values, callers, lines in the test.
+2. Remove one piece. Run the loop.
+3. Still fails **the same way** (same message, same assertion): keep the cut.
+4. Passes, or fails differently: put the piece back. It is load-bearing, or it hides a second bug. Note which.
+5. Start with the biggest pieces (half of the records, half of the fields), then go smaller. This is the idea behind ddmin: test the halves first.
+6. Stop when removing any remaining piece makes the loop pass.
+
+Write the result as: "load-bearing: A, B, C. Removed with no effect: D, E, F."
+
+### Tips by kind of input
+
+- **A big payload:** keep the keys, shrink the values, then drop the keys one at a time.
+- **A list or a table:** halve it, then bisect by position. Keep the one or two records that matter.
+- **A long test setup:** replace setup steps with the final state they create.
+- **A config:** reset to defaults, then re-add the settings one by one.
+- **A sequence of calls:** drop calls from the front and the middle. Keep the ones that change state.
+- **Time:** replace real time with a fixed instant. Then find the instant.
+
+### Careful with these
+
+- A cut that changes the failure to a different error is a different bug. Put it back.
+- Do not minimise by changing the assertion. Minimise the scenario.
+- Keep a copy of the scenario that failed before you started. If the minimal case stops reproducing in the full suite, you need it.
+
+## Find the first bad commit: `git bisect run`
+
+Use when the bug appeared between a known good state and a known bad state.
+
+Rules for the script (from the git manual):
+
+- Exit `0`: the commit is good.
+- Exit `1` to `127`, except `125`: the commit is bad.
+- Exit `125`: the commit cannot be tested. Git skips it.
+- Any other exit code (above 127, or `exit -1`, which becomes 255) aborts the bisect.
+
+A test runner usually exits `1` on a failing test. A build error may also exit `1`. Treat build errors as `125` so they do not count as bad.
+
+Keep the script **outside** the repository, so checkout does not change it. Never stash, commit, or reset the user's work. Bisect in a separate worktree, so uncommitted work stays untouched: `git worktree add ../<slug>-bisect <good-sha>`. The worktree needs its own dependencies (install them there, or use the repo's container setup). The failing test must also exist at each checked-out commit. Copy the test to the script's folder and run it from there, or use a script that copies it in.
+
+```sh
+#!/bin/sh
+# ../bisect-<slug>.sh  (outside the repo)
+<build command> || exit 125
+<command that runs the repro; exits non-zero when the bug is present>
+```
+
+```sh
+git bisect start <bad> <good> --
+git bisect run ../bisect-<slug>.sh
+git bisect reset
+```
+
+- Use `--first-parent` when merges are the unit of change: `git bisect start --first-parent <bad> <good> --`.
+- Always run `git bisect reset` when done, so the user returns to the starting commit. Never leave the tree in a bisect.
+- The result is a hypothesis ("commit X introduced it"). `confirm-root-cause` explains why.
+
+## Isolate the difference: pass versus fail
+
+When you have an input that passes and one that fails, find the smallest **difference** between them. Move the passing input toward the failing one, one change at a time, until a single change flips the result. That change is the failure-inducing difference.
+
+## Flaky bugs
+
+Minimise while you watch the failure rate. A cut that drops the rate from 1 in 2 to 1 in 50 may hide the trigger. Rerun N times after each cut and compare rates, not single runs.

@@ -1,0 +1,72 @@
+# Ruby and Rails: confirming a root cause
+
+Use in Steps 0 and 2 of `confirm-root-cause` when the code is Ruby.
+
+Sources: [debug gem](https://github.com/ruby/debug), [Debugging Rails Applications](https://guides.rubyonrails.org/debugging_rails_applications.html), [Active Record query interface](https://guides.rubyonrails.org/active_record_querying.html), [Rails error reporting](https://guides.rubyonrails.org/error_reporting.html), [Sidekiq error handling](https://github.com/sidekiq/sidekiq/wiki/Error-Handling), [ruby-prof / stackprof](https://github.com/tmm1/stackprof), and `reliability-analysis/references/ruby.md` in this plugin.
+
+## Debugger
+
+Ruby 3.1 and later ship the `debug` gem. Put a breakpoint in the code:
+
+```ruby
+binding.break # [DEBUG-a4f2]
+```
+
+or `debugger # [DEBUG-a4f2]`. Then run the one test. In the prompt:
+
+- `info` (locals), `p expr`, `pp expr`: inspect.
+- `bt` (backtrace), `up` / `down` (frames), `frame N`.
+- `next`, `step`, `continue`, `finish`.
+- `catch ExceptionClass`: stop when an exception is raised. Use this to find where a swallowed error starts.
+- `break file.rb:LINE if expr`: a conditional breakpoint.
+
+Older projects use `byebug` or `pry-byebug` (`binding.pry`). Use whatever the repo's Gemfile has. A debugger needs an interactive terminal. In a non-interactive run, use a probe.
+
+## Targeted probe
+
+```ruby
+Rails.logger.debug("[DEBUG-a4f2] user=#{user.id} total=#{total.inspect}")
+```
+
+- For a quick local probe, `warn "[DEBUG-a4f2] ..."` prints to stderr.
+- Print `inspect` of values to see `nil`, empty strings, and types.
+- No secrets or personal data in the message.
+
+## Find where an error really comes from
+
+- Print `error.backtrace.first(10)` and `error.cause` (Ruby keeps the original exception in `cause` when one is raised inside a `rescue`).
+- A bare `rescue => e` followed by `nil` or a log line swallows the error. Search the call chain for `rescue`, `rescue_from`, and `ensure`. A probe in the `rescue` block confirms the path.
+- `Rails.error.report` / Rails error reporter: check that handled errors are reported where the repo expects.
+
+## SQL and data
+
+- Show the queries of a path: `ActiveRecord::Base.logger = Logger.new($stdout)` in the test or in `rails console --sandbox`.
+- `relation.to_sql` and `relation.explain` show the SQL and the plan.
+- Check a data hypothesis with a read-only query in `rails console --sandbox`, which rolls back on exit. Never run it against production.
+- N+1 and query counts: count queries with `ActiveSupport::Notifications.subscribe("sql.active_record")`.
+
+## Callbacks, state, and timing
+
+- Callbacks (`before_save`, `after_commit`) change data in ways the call site does not show. List the callbacks of the model (`Model._save_callbacks`) and put a probe in the suspect one.
+- `after_commit` does not run inside transactional tests. A bug that depends on it needs a test setup that commits.
+- Time: print `Time.current`, `Time.zone`, and `Date.current` in the probe. A mismatch between `Time.now` and `Time.current` is a classic cause around midnight.
+- Memoised values (`@x ||= ...`) in long-lived objects (controllers are per request, service singletons and class-level variables are not) can hold stale data.
+
+## Background jobs
+
+- Sidekiq or ActiveJob: check the job's arguments (redacted), its retry count, and its idempotency. A job that runs twice (retry, duplicate delivery) is a common cause of duplicate side effects.
+- Run the job body directly in a test (`MyJob.new.perform(args)`), then twice, and compare.
+
+## Performance
+
+- Baseline with the repo's benchmark or `Benchmark.realtime { ... }`, or `stackprof` / `ruby-prof` if they are in the Gemfile.
+- Count queries and allocations before and after the change you test.
+- Compare medians over several runs.
+
+## Cleanup
+
+```sh
+grep -rn "DEBUG-a4f2" .
+```
+
+must return nothing. Check that no `binding.break`, `debugger`, or `binding.pry` is left (`grep -rn "binding\.\(break\|pry\)\|debugger" app lib spec test`).
