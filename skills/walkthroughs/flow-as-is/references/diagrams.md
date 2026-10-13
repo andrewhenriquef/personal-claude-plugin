@@ -1,6 +1,6 @@
 # Diagrams for a flow
 
-Use in Step 6 of `explore-flow`. Mermaid is the format. For more patterns read `design-doc-mermaid` in this plugin (`references/guides/diagrams/sequence-diagrams.md`, `activity-diagrams.md`, and `references/guides/troubleshooting.md`). The bug-specific version of these rules is in `explain-bug/references/diagrams.md`.
+Use in Step 6 of `flow-as-is`. Mermaid is the format. For more patterns read `design-doc-mermaid` in this plugin (`references/guides/diagrams/sequence-diagrams.md`, `activity-diagrams.md`, and `references/guides/troubleshooting.md`). The bug-specific version of these rules is in `explain-bug/references/diagrams.md`.
 
 Sources: [Mermaid sequence diagram](https://mermaid.js.org/syntax/sequenceDiagram.html), [Mermaid flowchart](https://mermaid.js.org/syntax/flowchart.html), [Mermaid state diagram](https://mermaid.js.org/syntax/stateDiagram.html), [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli).
 

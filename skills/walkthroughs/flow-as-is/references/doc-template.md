@@ -1,6 +1,6 @@
 # Flow doc template
 
-Use in Steps 0 and 7 of `explore-flow`. Create the file at Step 0 and fill it as you go. Write the headings in the doc's language (the Portuguese headings are in brackets). Remove the bracket text and the instructions in `<>`.
+Use in Steps 0 and 7 of `flow-as-is`. Create the file at Step 0 and fill it as you go. Write the headings in the doc's language (the Portuguese headings are in brackets). Remove the bracket text and the instructions in `<>`.
 
 ````markdown
 # <Flow name> flow [Fluxo de <nome>]

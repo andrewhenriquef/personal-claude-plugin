@@ -1,6 +1,6 @@
 # AS IS and TO BE diagrams
 
-Use in Step 6 of `explain-changes`. The base rules (evidence only, real names, layer order, size limits, captions, no sensitive data, hand checks) are in [the explore-flow diagram rules](../../explore-flow/references/diagrams.md). This file adds the rules for comparing two versions of one flow.
+Use in Step 6 of `flow-diff`. The base rules (evidence only, real names, layer order, size limits, captions, no sensitive data, hand checks) are in [the flow-as-is diagram rules](../../flow-as-is/references/diagrams.md). This file adds the rules for comparing two versions of one flow.
 
 ## Rules for a pair
 

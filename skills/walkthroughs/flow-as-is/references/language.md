@@ -1,6 +1,6 @@
 # Language rules
 
-Use in Steps 0, 7, 8, and 9 of `explore-flow`. The rules come from `grammar-review` in this plugin. `explain-bug/references/language.md` has longer English and Portuguese examples.
+Use in Steps 0, 7, 8, and 9 of `flow-as-is`. The rules come from `grammar-review` in this plugin. `explain-bug/references/language.md` has longer English and Portuguese examples.
 
 Sources: [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/), the Brazilian Rede Nacional de Linguagem Simples (Decreto 9.191/2017 principles), and [ISO 24495-1 Plain Language](https://www.iso.org/standard/78907.html).
 

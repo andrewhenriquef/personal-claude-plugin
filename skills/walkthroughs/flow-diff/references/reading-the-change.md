@@ -1,6 +1,6 @@
 # Reading the change
 
-Use in Steps 0 to 3 of `explain-changes`. All commands are read-only.
+Use in Steps 0 to 3 of `flow-diff`. All commands are read-only.
 
 ## Scope
 

@@ -1,9 +1,9 @@
 ---
-name: explore-flow
+name: flow-as-is
 description: Explore an existing flow in the codebase and explain it with clarity, without changing code. Reads the code and the tests from the entry point (endpoint, job, command, event, UI action) to the last side effect, splits the flow into 3 to 7 parts, draws a Mermaid sequence diagram of the whole flow and one per part, and explains each part in the plain-language standard of the user's language (ASD-STE100 English, Linguagem Simples Portuguese, ISO 24495-1 for others, as in grammar-review). Every statement cites file:line or a test. Writes docs/<flow-name>-flow.md. Use when the user asks "how does X work", "explain this flow", "trace this request", "map the flow before I change it", "como funciona", "explique o fluxo", or wants an existing flow documented.
 ---
 
-# Explore Flow
+# Flow As Is
 
 > Evidence sources: the `code-explorer` agent of Anthropic's [feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev) (entry points, call chains, layers, `file:line` for each claim, a short list of essential files), [CodeMap](https://smithery.ai/skills/aronasorman/codemap) (start from real entry points, follow the critical path, map error paths, explain why at decision points, use concrete values, no disconnected file lists), the [walkthrough skill](https://alexop.dev/posts/building-walkthrough-skill-claude-code/) ("the subagents do the reading, the main agent does the thinking", 5 to 12 concepts per diagram), [codebase-onboarding](https://github.com/spencerpauly/awesome-cursor-skills) (parallel explorers by region, "start here" files, gotchas), [Codebase Overview](https://github.com/Tryboy869/dojutsu-for-ai) (detect, explore, map, summarize, in strict order), and [Getting the most out of Opus 5.5](https://claude.dev/blog/getting-the-most-out-of-opus-5-5/) (name the finish line, say when to stop and ask, check subagent evidence, mark what could not be confirmed and where you looked, keep a file that survives summaries). In this plugin: `explain-bug` (glossary, facts with sources, `(inferred)` marks, diagram checks), `design-doc-mermaid` (sequence diagram guide, validation script), and `grammar-review` (language detection and plain-language standards).
 

@@ -1,6 +1,6 @@
 # Tracing a flow
 
-Use in Steps 2, 3, and 4 of `explore-flow`. Find the real entry point, follow the critical path, and find the tests. Search with `rg` (or `git grep`) first, then open the files.
+Use in Steps 2, 3, and 4 of `flow-as-is`. Find the real entry point, follow the critical path, and find the tests. Search with `rg` (or `git grep`) first, then open the files.
 
 ## Entry points by trigger
 
