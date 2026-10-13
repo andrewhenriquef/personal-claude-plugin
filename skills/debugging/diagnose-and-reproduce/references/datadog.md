@@ -6,7 +6,7 @@ Sources: [Datadog MCP Server tools](https://docs.datadoghq.com/mcp_server/tools.
 
 ## If the tools are not there
 
-Datadog MCP tools may not be in the session. Then write "No Datadog data" in the symptom card and ask the user for the numbers or the redacted artifact you need. Do not ask the user to install a plugin and do not stop the run.
+Datadog MCP tools may not be in the session. Then write "No Datadog data" in the symptom card, and list the numbers or the redacted artifact you need under **Unknowns**. Ask for them only when they block the next step (`diagnose-and-reproduce`, Step 1, item 5). Do not ask the user to install a plugin, and do not stop the run.
 
 The server groups tools into toolsets. `core` is on by default. `apm`, `error-tracking`, `alerting`, and others need the user to enable them (for example `?toolsets=core,apm,error-tracking`). If a tool you need is missing, say which toolset it needs.
 

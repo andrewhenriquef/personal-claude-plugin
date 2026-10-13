@@ -35,12 +35,12 @@ This skill adds probes to code only for the length of the run. It removes them b
 
 ### Step 0: Read, and set up the probe tag
 
-0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug, ask the user for the missing facts in one `AskUserQuestion` call, and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md).
+0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call. Otherwise go on, and write each guess under **Assumptions**. Take the tree snapshot as `diagnose-and-reproduce` does (Step 0, item 3).
 1. Read `docs/<slug>/diagnosis.md`: the symptom card, the hypotheses, the reproduction command and its minimal scenario.
 2. Run the reproduction once. Confirm it is still red, and that the tree is as the snapshot says.
-3. Pick a probe tag: `[DEBUG-xxxx]` with four random hex characters. Use the **same tag** for every probe in this run, and write it in section 4 of `diagnosis.md` now. Cleanup is then one `grep`.
+3. Pick a probe tag: `[DEBUG-xxxx]` with four random hex characters. Use the **same tag** for every probe in this run, and write it in section 4 of `diagnosis.md` now. Cleanup is then one search.
 4. Read the language file: [references/go.md](references/go.md) or [references/ruby.md](references/ruby.md).
-5. Make a **backup folder** outside the repo: `backup=$(mktemp -d)`. Before you edit any tracked file, copy it there with its path (`cp --parents <file> "$backup"/`). To undo an edit, copy the file back and check it with `diff`. This keeps the user's own uncommitted changes in that file. `git diff` patches do not: a patch of the whole diff would include them.
+5. Use the **backup folder** in the run state directory: `backup="$(git rev-parse --absolute-git-dir)/diagnose/<slug>/backup"`. Each shell command starts a new shell, so set `backup` again in every command; the path is the same each time. Before you edit any tracked file, copy it there with its path: `mkdir -p "$backup/$(dirname <file>)" && cp <file> "$backup/<file>"`. To undo an edit, copy it back (`cp "$backup/<file>" <file>`) and check it with `diff "$backup/<file>" <file>`. This keeps the user's own uncommitted changes in that file. `git diff` patches do not: a patch of the whole diff would include them.
 
 ### Step 1: Design one experiment per hypothesis
 
@@ -95,17 +95,18 @@ Before you label a cause, argue against it:
 - Does it explain why the bug appeared **when it did** (the timeline), and why **not before**?
 - Does it explain why **other** cases work (the passing inputs, the other tenants)?
 - Is there a simpler or earlier cause that this one hides? Ask "why" up to five times, and require evidence for each answer. Stop when you reach something you can change or when the answer is "unknown" (then say so).
-- If the user has other agents or a second session, a fresh reviewer who sees only the evidence and the claim may try to refute it. This is optional.
+- **Fresh-context check.** Before you label a cause **Confirmed**, spawn one subagent (in Claude Code, the `Agent` tool with a general-purpose agent; in Cursor, the Task tool). Give it only the symptom card, the reproduction command and its output, the experiment log, and the claimed cause with its file and line, not your own reasoning. Ask it to refute the claim: find an observation the cause does not explain, or a simpler or earlier cause, and cite the file, line, or output for each point. It must not edit files or run probes. When it returns, check each point against the code and the log yourself before you accept or reject it. A point that holds keeps the label at **Likely** and goes into "Missing for Confirmed". If subagents are not available, say so in section 4 and go on without it.
 
 ### Step 5: Decide, and re-rank
 
 - **A hypothesis survived and the counterfactual check held:** write the cause. Go to Step 6.
-- **Every hypothesis was rejected:** go back to `form-hypotheses` **once**, with the new evidence. A second round that also ends with all rejected goes to the user: say what is known, what is not, and ask for access, data, or a different angle.
-- **After three experiments with no clear result,** stop and question the framing: Is the reproduction testing the right path? Is the bug in the data or the environment? Is the design making this class of bug likely? Say what you think and ask the user.
+- **Every hypothesis was rejected:** go back to `form-hypotheses` **once**, with the new evidence.
+- **After three experiments with no clear result,** question the framing yourself before you ask anyone. Check each point and write the answer in the experiment log: Does the reproduction run the path that the symptom card describes? Does the bug follow the data or the environment, not the code (run the reproduction with other data, or on the last known good commit)? Does the design make this class of bug likely? Then go back to `form-hypotheses` with what you found. This uses the same single return as the rule above.
+- **The second round also ends with no surviving hypothesis:** stop. Say what is known, what is not, and what you checked, and ask the user for access, data, or a different angle. Write the question in **Needs from you** in `diagnosis.md`.
 
 ### Step 6: Clean up
 
-1. Remove every probe: `grep -rn "DEBUG-xxxx" .` must return nothing. Remove temporary prototypes, extra tests, and scratch files (or move them under `docs/<slug>/` with a clear name).
+1. Remove every probe: `git grep -n --untracked -I "DEBUG-xxxx" -- . ':!docs/<slug>/'` must return nothing. It searches tracked and untracked files, and leaves out `docs/<slug>/`, where `diagnosis.md` records the tag. Remove temporary prototypes, extra tests, and scratch files (or move them under `docs/<slug>/` with a clear name).
 2. Check the tree against the snapshot: only tests, scripts, and `docs/<slug>/` differ.
 3. Run the reproduction once more. It must be red, as before.
 
@@ -114,7 +115,7 @@ Before you label a cause, argue against it:
 Write section 4 of `docs/<slug>/diagnosis.md`:
 
 - **Confidence:**
-  - **Confirmed:** a prediction that could have failed held, the counterfactual check held, and the cause explains all observations.
+  - **Confirmed:** a prediction that could have failed held, the counterfactual check held, the fresh-context check found no point that holds (or subagents were not available, and this section says so), and the cause explains all observations.
   - **Likely:** the cause fits all observations and one experiment supports it, but the counterfactual check or the refutation is incomplete. Say what is missing.
   - **Unconfirmed:** the evidence fits, nothing separates it from other causes. Say what experiment would.
   - **Unreproduced:** the evidence comes from production only. Add the limits of that evidence.
@@ -140,7 +141,8 @@ Supported by: <experiment ID, one line>
 Rejected: H2 (<observation>), H3 (<observation>)
 Counter-checks: <what could have disproved it>
 Missing for Confirmed: <if not Confirmed>
-Probes removed: yes (grep clean)
+Probes removed: yes (search clean)
+Fresh-context check: <no point held | points that held | not available>
 Reproduction still red: yes
 ```
 
@@ -174,11 +176,11 @@ Reproduction still red: yes
 
 - [ ] Each experiment is in the log with its prediction, its change (one variable), its observation, and its conclusion.
 - [ ] Every hypothesis has a status. Rejected ones have the observation.
-- [ ] The winning hypothesis survived a counterfactual check and a refutation attempt, or the label says what is missing.
+- [ ] The winning hypothesis survived a counterfactual check, a refutation attempt, and the fresh-context check, or the label says what is missing.
 - [ ] The explanation covers all observations, the timeline, and the passing cases.
 - [ ] The root cause lists the proximate cause, the contributing factors, and the latent conditions.
 - [ ] The confidence label is one of Confirmed, Likely, Unconfirmed, Unreproduced, and matches the evidence.
-- [ ] `grep` for the probe tag returns nothing. The tree differs from the snapshot only in tests, scripts, and `docs/<slug>/`.
+- [ ] The search for the probe tag (Step 6) returns nothing. The tree differs from the snapshot only in tests, scripts, and `docs/<slug>/`.
 - [ ] The reproduction still fails as before.
 - [ ] Datadog was read-only, or not used.
 - [ ] Nothing was committed. No fix was applied.

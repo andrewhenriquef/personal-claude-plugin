@@ -63,7 +63,7 @@ For a slow path, logs are usually the wrong tool.
 
 ## Counterfactual patch
 
-A temporary in-memory or small code change that removes the suspected cause, to see whether the reproduction goes green. Copy each file you will touch to a backup folder first (`backup=$(mktemp -d)`; `cp --parents <file> "$backup"/`) and copy it back afterward. Do not use a `git diff` patch to undo: it would also include the user's own uncommitted changes. Never use `git restore`, `git checkout`, `git stash`, or `git reset`.
+A temporary in-memory or small code change that removes the suspected cause, to see whether the reproduction goes green. Copy each file you will touch to the backup folder first, and copy it back afterward (the commands are in `SKILL.md`, Step 0, item 5). Do not use a `git diff` patch to undo: it would also include the user's own uncommitted changes. Never use `git restore`, `git checkout`, `git stash`, or `git reset`.
 
 ## Five whys, with evidence
 

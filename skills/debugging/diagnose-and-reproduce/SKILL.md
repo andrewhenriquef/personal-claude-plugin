@@ -43,6 +43,7 @@ Skill calls below are written as Claude Code `Skill(skill: ...)` calls. The plug
 - **Redact before you show or store.** Read [references/redaction.md](references/redaction.md).
 - **Show evidence, not claims.** Every "reproduced", "confirmed", or "supported" comes with the command you ran and the output (redacted, shortest decisive lines).
 - **One sub-skill at a time, in order.** They share one file and one working tree. Do not run them in parallel.
+- **Keep "Needs from you" current.** The field at the top of `diagnosis.md` holds the open question for the user, or "nothing". Update it whenever you ask or the user answers.
 - **Use the user's language for chat.** The explanation and the options are always written in English and in Portuguese (see `explain-bug`).
 
 ## Process
@@ -51,13 +52,18 @@ Skill calls below are written as Claude Code `Skill(skill: ...)` calls. The plug
 
 1. Pick the **slug**: the ticket tag if the user gave one, otherwise a short kebab-case name from the symptom. The run folder is `docs/<slug>/`.
 2. If `docs/<slug>/diagnosis.md` already exists, this is a **resumed run**. Read it, tell the user the `Status` it shows, and continue from the first section that is empty or marked "not reached". Do not redo finished phases unless the user asks. Otherwise create the file from [references/diagnosis-template.md](references/diagnosis-template.md). Every phase writes its own section.
-3. Take a **tree snapshot**: `git rev-parse HEAD`, `git status --porcelain`, and `git diff --stat`. Keep the output in your working notes. The user may already have uncommitted work. It is part of the snapshot, so never go back to a clean tree. After each phase, compare. The only new differences may be test files, reproduction scripts, and `docs/<slug>/`. A probe tagged `[DEBUG-xxxx]` is allowed only during `confirm-root-cause`.
+3. Take a **tree snapshot** into the run state directory, which sits in the git directory, outside the working tree. The path comes from the slug, so it survives a summary of the conversation. Write the path into the `Run state` field of `diagnosis.md`:
+   ```
+   state="$(git rev-parse --absolute-git-dir)/diagnose/<slug>"; mkdir -p "$state"
+   { git rev-parse HEAD; git status --porcelain=v1 -uall; git diff --stat; } > "$state/snapshot.txt"
+   ```
+   To compare later, write the same output to `"$state/now.txt"` and run `diff "$state/snapshot.txt" "$state/now.txt"`. On a resumed run, keep the existing `snapshot.txt`. A new one would hide the files that earlier phases added. The user may already have uncommitted work. It is part of the snapshot, so never go back to a clean tree. After each phase, compare. The only new differences may be test files, reproduction scripts, and `docs/<slug>/`. A probe tagged `[DEBUG-xxxx]` is allowed only during `confirm-root-cause`.
 4. Detect the project: language (`go.mod`, `Gemfile`), the test command and the focused-test command (`CLAUDE.md`, `Makefile`, `Rakefile`, CI config, `docs/pipelines.md` if `run-pipelines` made it), and how to boot the app locally. The sub-skills use these.
 
 ### Step 1: Intake
 
 1. Collect the context the user gave: description, pasted text, files, links, ticket numbers. A GitHub issue or PR may be read with `gh issue view` or `gh pr view` (read-only).
-2. If the user points at Datadog, or the symptom came from production, and Datadog MCP tools are in the session, gather evidence with [references/datadog.md](references/datadog.md). If the tools are missing, write "No Datadog data" and ask the user for what you need. Do not ask the user to install anything.
+2. If the user points at Datadog, or the symptom came from production, and Datadog MCP tools are in the session, gather evidence with [references/datadog.md](references/datadog.md). If the tools are missing, write "No Datadog data", and list the numbers or artifacts you need under **Unknowns**. Ask for them only under the rule in item 5. Do not ask the user to install anything.
 3. Redact everything you keep ([references/redaction.md](references/redaction.md)).
 4. Fill the **symptom card** in `diagnosis.md`:
    - **Symptom:** what a user or system sees, in one sentence.
@@ -97,7 +103,7 @@ Run `Skill(skill: "propose-solutions")`. It writes 2 to 3 fix options with trade
 
 ### Step 7: Gate
 
-1. Check the tree against the snapshot. Search for the probe tag that `confirm-root-cause` recorded in section 4 (`grep -rn "DEBUG-xxxx" .`). If a probe is left, remove it, and say so in the report.
+1. Check the tree against the snapshot. Search for the probe tag that `confirm-root-cause` recorded in section 4 (`git grep -n --untracked -I "DEBUG-xxxx" -- . ':!docs/<slug>/'`; the search leaves out `docs/<slug>/`, where the tag is recorded). If a probe is left, remove it, and say so in the report.
 2. Ask the user which option to take with `AskUserQuestion`, in one question. The tool allows 4 options. Give one option per solution (2 to 3), the recommended one first, and add "I need more evidence" when there is room and no option already covers it. "Stop here" is the automatic "Other" answer.
 3. Write the choice and the handoff block ([references/diagnosis-template.md](references/diagnosis-template.md), section "Handoff") into `diagnosis.md`.
 4. Report: the slug, the path of `diagnosis.md`, the reproduction command, the confidence label, and the chosen option. Say that the failing test is in the working tree and not committed. Say what comes next (the fix, test first). Stop. Do not start the fix unless the user asks.
@@ -108,7 +114,7 @@ Stop when `reproduce-bug` reports that it could not make the symptom fail. Do no
 
 1. Write the section "Reproduction: not reproduced" in `diagnosis.md`: every loop you tried, the command, and what it printed.
 2. List the likely reasons: already fixed on the main branch (check `git log` and the deploy), user error or a changed expectation, an environment or data difference, a race that needs more load, a version the tree does not match.
-3. Ask the user for one of: access to an environment that shows it, a redacted artifact (log dump, request, HAR file, core dump, a recording with timestamps), or permission to add temporary instrumentation to a non-production environment.
+3. Write the request in **Needs from you**, and ask the user for one of: access to an environment that shows it, a redacted artifact (log dump, request, HAR file, core dump, a recording with timestamps), or permission to add temporary instrumentation to a non-production environment.
 4. If the user wants to go on from production evidence alone, continue with `confirm-root-cause`, and label every later result **Unreproduced**. The explanation and the options carry that label.
 
 ## Common rationalizations

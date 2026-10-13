@@ -35,7 +35,7 @@ This skill is read-only. It does not reproduce the bug, add probes, or propose f
 
 ### Step 0: Read the inputs
 
-0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug, ask the user for the missing facts in one `AskUserQuestion` call, and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md).
+0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call. Otherwise go on, and write each guess under **Assumptions**.
 1. Read the symptom card and the evidence in `docs/<slug>/diagnosis.md`.
 2. Read the code at the place the evidence points to: the failing route, job, or function and its direct callers and callees. Do not read the whole repository.
 3. Read the history of that place: `git log --oneline -n 20 -- <paths>` and, if the symptom began at a known time, the commits and deploy events just before it.

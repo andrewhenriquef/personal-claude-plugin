@@ -66,7 +66,7 @@ Rails.logger.debug("[DEBUG-a4f2] user=#{user.id} total=#{total.inspect}")
 ## Cleanup
 
 ```sh
-grep -rn "DEBUG-a4f2" .
+git grep -n --untracked -I "DEBUG-a4f2" -- . ':!docs/<slug>/'
 ```
 
 must return nothing. Check that no `binding.break`, `debugger`, or `binding.pry` is left (`grep -rn "binding\.\(break\|pry\)\|debugger" app lib spec test`).

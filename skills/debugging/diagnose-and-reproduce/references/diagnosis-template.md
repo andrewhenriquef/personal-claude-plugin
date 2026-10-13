@@ -11,6 +11,8 @@ Write the file in English. The English and Portuguese sections of the explanatio
 - **Date:** <YYYY-MM-DD>
 - **Commit:** <git rev-parse --short HEAD>
 - **Status:** Intake | Hypotheses | Reproduced | Not reproduced | Root cause <Confirmed|Likely|Unconfirmed|Unreproduced> | Options ready | Option chosen
+- **Needs from you:** <the open question for the user, or "nothing">
+- **Run state:** `<git dir>/diagnose/<slug>/` (tree snapshot, backups of files edited during experiments)
 
 ## 1. Symptom card
 
@@ -60,7 +62,8 @@ Write the file in English. The English and Portuguese sections of the explanatio
 - **Counter-checks:** (what could have disproved it, and did not)
 - **Rejected hypotheses:** (ID and the observation that rejected it)
 - **Probe tag:** `[DEBUG-xxxx]` (the tag used in this run)
-- **Probes removed:** yes (`grep` for the tag shows none)
+- **Probes removed:** yes (the search for the tag outside `docs/<slug>/` shows none)
+- **Fresh-context check:** <no point held | points that held, and how they changed the label | not available>
 
 ## 5. Explanation
 

@@ -64,7 +64,7 @@ go test -race -run '^TestName$' -count=30 ./path/to/pkg
 ## Cleanup
 
 ```sh
-grep -rn "DEBUG-a4f2" .
+git grep -n --untracked -I "DEBUG-a4f2" -- . ':!docs/<slug>/'
 ```
 
 must return nothing. Run `gofmt -l .` on the files you touched, to be sure the cleanup left them formatted.

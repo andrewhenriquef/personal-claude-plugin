@@ -34,7 +34,7 @@ This skill writes text and diagrams. It changes no code and proposes no fix. Fix
 
 ### Step 0: Read, and gather facts
 
-0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug, ask the user for the missing facts in one `AskUserQuestion` call, and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md).
+0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call. Otherwise go on, and write each guess under **Assumptions**.
 1. Read `docs/<slug>/diagnosis.md` fully: symptom card, hypotheses, reproduction, root cause, experiment log.
 2. Read the code of the failing flow, only to name the real components, functions, and calls for the diagrams. Use real names from the code. Do not invent a function, a service, or a message.
 3. List the **facts** you will use. For each, note its source (a log line, a trace ID, a test output, an experiment). A claim with no source does not go in. It goes under "Not verified".
@@ -68,7 +68,7 @@ Diagram rules:
 - Labels in English, short, using the glossary terms. A Portuguese caption goes under each diagram (see Step 3).
 - Show only what the evidence shows. Mark anything inferred with `(inferred)`.
 - No secrets, tokens, or personal data in a label.
-- Check the syntax. If `mmdc` (mermaid-cli) is installed, render each diagram to a temporary file to validate. Otherwise read it carefully. See `design-doc-mermaid` for the helper scripts.
+- Check the syntax. If `mmdc` (mermaid-cli) is installed, render each diagram to a temporary file to validate. Otherwise check each diagram by hand: every participant or node is declared once and spelled the same everywhere, a label with `(`, `)`, `:`, `;`, `#`, or quotes is wrapped in double quotes, every `rect`, `alt`, `opt`, `loop`, and `par` block has its `end`, and no node is named `end`. See `design-doc-mermaid` for the helper scripts.
 
 ### Step 3: Write the Portuguese version
 
@@ -164,7 +164,7 @@ Caption (PT): ...
 - [ ] A sequence diagram shows the failing flow and marks the faulty step. A flowchart shows the condition, or the report says why it is skipped.
 - [ ] Diagram labels use the glossary. Each diagram has a Portuguese caption.
 - [ ] Inferred steps are marked. Nothing sensitive is in a label.
-- [ ] Mermaid syntax was validated or read carefully.
+- [ ] Mermaid syntax was validated with `mmdc`, or checked by hand with the list in Step 2.
 - [ ] The confidence label and the "Not verified" list are present in both languages.
 - [ ] No fix or recommendation appears.
 - [ ] Section 5 of `diagnosis.md` is written, and the explanation was shown in the chat.

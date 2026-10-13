@@ -36,7 +36,7 @@ This skill writes tests, scripts, and files under `docs/<slug>/`. It does not ch
 
 ### Step 0: Read, and know the green baseline
 
-0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug, ask the user for the missing facts in one `AskUserQuestion` call, and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md).
+0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call. Otherwise go on, and write each guess under **Assumptions**.
 1. Read `docs/<slug>/diagnosis.md`: symptom card, hypotheses and their cheapest tests, project commands.
 2. Read the test conventions of the area: where tests live, helpers, factories, fixtures, naming, the focused-test command. Read the language file now: [references/go.md](references/go.md) or [references/ruby.md](references/ruby.md).
 3. Run the existing tests of the area once. Record green or red. A suite that is red before you start changes what "fails" means. If it is red, find which tests, and do not count those.
@@ -123,9 +123,9 @@ or
 
 ```
 ## Reproduction: not reproduced
+Need from the user: <environment | redacted artifact | permission>
 Attempts: <1..3 with commands and outputs>
 Likely reasons: <list>
-Need from the user: <environment | redacted artifact | permission>
 ```
 
 ## Common rationalizations
