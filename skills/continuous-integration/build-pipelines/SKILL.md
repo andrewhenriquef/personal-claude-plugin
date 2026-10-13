@@ -60,6 +60,8 @@ This is the second skill of the `continuous-integration` family:
 - **Never weaken a tool config.** Do not disable a rule, add an ignore entry, or lower a threshold to make a check pass.
 - **Secrets by reference only.** Write `${VAR}` and let the developer's environment or `.env` supply it. Never write a secret value. Test-only values for services that this file starts (for example the local test database URL) are allowed.
 - **Ask before you write.** Show the plan in Step 4 and wait for approval.
+- **Ask in rounds, not one by one.** Step 2 asks every question it needs in one round. Questions that come up during Step 6 wait for one round at its end (Step 6.13). Keep working on the other checks in between.
+- **Keep the run state on disk.** The ledger, the scan report, the logs, and the report timestamps live in the run directory (Step 0.5). Never only in the chat, and never in `/tmp`.
 - **Do not commit** unless the user asks.
 
 ## Process
@@ -69,19 +71,37 @@ This is the second skill of the `continuous-integration` family:
 1. Run `docker version` and `docker compose version`. Compose v2.24.4 or later is required (`profiles`, `extends`, `x-` fields, and the `!reset` and `!override` tags; `!override` arrived in v2.24.4). If the version is older, avoid the tags and write the services out in full.
 2. If Docker is missing or the daemon is not running, stop. Report **Blocked** with the exact error.
 3. Find the compose file: `compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`, in that order (the Compose default). If none exists, the plan creates `docker-compose.yml` with only the `pipelines` services. Say so in the plan.
-4. Record the services that start today with no profile: `docker compose config --services`. Step 7 compares against this list.
+4. Record the services that start today with no profile: `docker compose config --services`. Step 7 compares against this list. Save it to the run directory (next item).
+5. Create the **run directory** in the git directory. It is outside the working tree, so the `git diff` and `git status` checks in Step 7 do not see it, and it survives a summary of the conversation:
+   ```
+   run="$(git rev-parse --absolute-git-dir)/pipelines/build-$(date -u +%Y%m%dT%H%M%SZ)"; mkdir -p "$run/logs" && echo "$run"
+   ```
+   Each shell command starts a new shell, so start every later command that uses it with `run=<the printed path>`. Keep `$run/ledger.md` current after every step and every check run, and read it, not the conversation, to see where the run is:
+   ```
+   # build-pipelines run
+   Run dir: <path>. Commit: <git rev-parse HEAD>. Step: <N>.
+   Needs from you: <the open question, or "nothing">
+   No-profile services (Step 0.4): <list>
+   Plan (approved <date>): <check-id: image, version (rule), services>
+   | check-id | full run | changed run | attempts | log |
+   Decisions for Step 6.13: <list, or "none">
+   ```
 
 ### Step 1: Scan
 
 1. **Claude Code:** call `Skill(skill: "scan-pipelines")`. **Cursor:** read and follow the `scan-pipelines` skill's `SKILL.md` in full.
 2. If the user already ran it in this session and nothing changed since, reuse that report.
-3. If the compose file already has `pipelines` services, list them. A service with an `x-pipelines` block is owned by this skill and can be updated. Leave every other service alone.
+3. Save the report to `$run/scan.md`, with the commit on its first line (`Commit: <git rev-parse HEAD>`). Later steps, and `github-pipelines`, read it from there.
+4. If the compose file already has `pipelines` services, list them. A service with an `x-pipelines` block is owned by this skill and can be updated. Leave every other service alone.
 
 ### Step 2: Choose suggested checks
 
 1. **Baseline suggestions are not optional.** Take every `missing` or `partial` baseline item from the scan's Baseline table. They go into the plan without a question.
-2. Ask the user once about the other suggestions, in one multi-select question, must first. Show the category, the recommended tool, and the effort for each.
-3. **Choose the tool for each new check.** For every check going into the plan with no tool in the project (baseline items included), show the scan's status table from its Tool options section, then ask which tool to use, as in "Asking the user" of `scan-pipelines`' [tool-research.md](../scan-pipelines/references/tool-research.md). The recommended tool is always the first option. If the scan has no table for a check, or it is from an earlier session, research it now with the same file.
+2. **Research first.** If the scan has no status table for a check that may go into the plan, or the table is from an earlier session, research it now with `scan-pipelines`' [tool-research.md](../scan-pipelines/references/tool-research.md), before you ask anything.
+3. **Ask once, in one round.** Show the status tables from the scan's Tool options section, then ask every question together:
+   - The other suggestions: one multi-select question, must first. Show the category, the recommended tool, and the effort for each.
+   - The tool for each new check (baseline items included, and every suggestion the user may select): one question per check, as in "Asking the user" of tool-research.md. The recommended tool is always the first option. A tool answer for a suggestion counts only if the user selects that suggestion.
+   - **Claude Code:** one `AskUserQuestion` call holds up to 4 questions. With more, make the fewest calls, back to back, with no other work between them.
 4. Existing checks are always set up. Do not ask about them.
 
 ### Step 3: Plan each check
@@ -107,7 +127,7 @@ If CI does not pin the tool (no version input, `latest`, unpinned install), the 
 
 If the latest stable is a new major version and the check needs a config (golangci-lint v1 to v2, ESLint flat config), write the config for that major. Never reuse a config written for an older major.
 
-If the lookup fails (no network, rate limit), say so in the plan and ask the user for the version. Never guess a version.
+If the lookup fails (no network, rate limit), say so in the plan, and put the question for the version in the Step 4 approval. Never guess a version.
 
 Check that each image exists before you plan it:
 
@@ -166,7 +186,7 @@ The work is done only when every new service passes this step. Run in this order
 2. `docker compose --profile pipelines pull --ignore-buildable <new services>`. Name the services, so the developer's own service images are not pulled to newer tags.
 3. `docker compose --profile pipelines build <new services that build>`.
 4. **Version.** For each new service, run the tool's version command from tool-images.md. It must print the version planned in Step 3. A different version is a bug in your file (wrong tag, wrong install line, app image not rebuilt).
-5. **Full run.** For each new service with `writes: false`, one at a time (`writes: true` services follow step 9): `docker compose --profile pipelines run --rm -T <id> <full>`. A service with `reads: <id>` runs right after that check's full run, with `PIPELINES_SINCE` set to the time that run started, minus 5 seconds: `env PIPELINES_SINCE=<epoch> docker compose ...`. Save the output to a log in a temp directory outside the repo (`mktemp -d`). Record the exit code. Use a long timeout for test suites. Never shorten the command to make it faster.
+5. **Full run.** For each new service with `writes: false`, one at a time (`writes: true` services follow step 9): `docker compose --profile pipelines run --rm -T <id> <full>`. A service with `reads: <id>` runs right after that check's full run, with `PIPELINES_SINCE` set to the time that run started, minus 5 seconds. Write that time to a file before the full run (`echo $(( $(date +%s) - 5 )) > "$run/since-<id>.txt"`), and read it back for the reader: `env PIPELINES_SINCE="$(cat "$run/since-<id>.txt")" docker compose ...`. Save the output to `$run/logs/<id>-full.log` (`<id>-changed.log` in step 6). Record the exit code, the verdict, and the log path in the ledger. Use a long timeout for test suites. Never shorten the command to make it faster.
 6. **Changed-files run.** For each `writes: false` service with `changed` not null, pick one tracked file that matches `files` (`git ls-files | grep -E '<files>' | head -1`), put it in `{files}` (or its directory in `{dirs}`), and run `changed` the same way. If no tracked file matches, say so and skip this run.
 7. **Classify** each run with "Reading a result" in tool-images.md:
 
@@ -177,8 +197,8 @@ The work is done only when every new service passes this step. Run in this order
 | `broken` | Anything else: exit 125, 126, or 127, the tool's own error exit code, config or load errors, a missing dependency, a service that does not connect, a crash, a timeout, exit 0 with nothing checked ("0 files", "No examples found") | No |
 
 8. **Fix every `broken` check** and run steps 1 to 7 again for it. The cause is almost always your file: image, mount path, working directory, env, service, command, or new config. At most three attempts per check. If it is still broken, or the cause is outside your files (the app does not boot on `main` either, a secret is missing, the project's own config is invalid), stop that check, and report it as **Not done** with the error lines from the log.
-9. **Checks with `writes: true`** edit the working tree, so never run them in steps 5 and 6. A `writes: true` service is the fix twin of a check service (pattern 5): the twin's verdict proves the tool. With no twin, run the tool's check form (`--check`, `--dry-run`, `-l`, RuboCop without `-a`) in the same service, or ask the user before you run the write form, and show `git status --short` before and after.
-10. **Parallel tests, when Step 3 left the decision here.** Read the duration of the serial full run of each test check. Over 5 minutes, parallel is needed. If the runner has no built-in parallel mode, research the parallel libraries and ask which one, as in Step 2. Show the parallel setup (pattern 9) and any app change it needs, wait for approval as in Step 4, apply it, and run steps 1 to 8 again for that check. Under 5 minutes, record `not needed` with the time.
+9. **Checks with `writes: true`** edit the working tree, so never run them in steps 5 and 6. A `writes: true` service is the fix twin of a check service (pattern 5): the twin's verdict proves the tool. With no twin, run the tool's check form (`--check`, `--dry-run`, `-l`, RuboCop without `-a`) in the same service. If the tool has no check form, add "run the write form of `<id>`" to the decisions for step 13, and go on with the other checks. With approval, show `git status --short` before and after the run.
+10. **Parallel tests, when Step 3 left the decision here.** Read the duration of the serial full run of each test check. Over 5 minutes, parallel is needed: if the runner has no built-in parallel mode, research the parallel libraries now (tool-research.md), and add the library choice and the parallel setup (pattern 9, with any app change it needs) to the decisions for step 13. Do not stop here. Under 5 minutes, record `not needed` with the time.
 11. **Parallel check.** For every parallel test check, the parallel run must report the same number of tests as the serial run (no test lost between workers), and must be faster. If not, it is `broken`.
 12. **Coverage minimum.**
     1. Take the step 5 gate run of the `coverage` service (placeholder minimum `0`), right after the test check's full run. Read the line coverage from its log ("Reading coverage" in tool-images.md).
@@ -187,7 +207,8 @@ The work is done only when every new service passes this step. Run in this order
     4. Run the gate again on the same report (no new test run), with the same `PIPELINES_SINCE`. It must be `pass`. A failure there is `broken` (wrong report path, workers not merged).
     5. Prove the suite runs once: the coverage log shows no test output, only the gate line.
     6. If the suite has failing tests, coverage was measured anyway. Say so in the report, because the minimum may rise once they are fixed.
-13. **Clean up.** Remove only the dependency services the runs started: `docker compose --profile pipelines rm -sf <service> ...`. Never `docker compose down`.
+13. **Decisions, in one round.** When every other check has its verdict, ask every decision collected in this step together, in one round as in Step 2: the parallel library and setup (with its app change), the write form of a check with no check form, and anything else that needs approval. Write the questions in **Needs from you** in the ledger. Apply only what the user approves. For an approved parallel setup, run steps 1 to 8 and step 11 for that test check, then step 12.4 and 12.5 again on its new report. With no decisions, skip this step.
+14. **Clean up.** Remove only the dependency services the runs started: `docker compose --profile pipelines rm -sf <service> ...`. Never `docker compose down`.
 
 A version command proves the tool starts. Only the full and changed runs prove the check works. `run-pipelines` uses these services later. It must never be the first to find a broken one.
 
@@ -208,6 +229,13 @@ A version command proves the tool starts. Only the full and changed runs prove t
 
 Status: **Done** (every check returns a verdict) | **Not done** (<N> broken, listed below).
 Baseline: **met** | **not met** (<items>, reasons below).
+Run directory: <path> (ledger, scan report, logs).
+
+### Needs from you
+- <secret names to set, and the checks that need them>
+- <broken checks that need you: what to do>
+- <decisions not answered>
+Write "Nothing" when there is nothing.
 
 ### Baseline
 | # | item | status | runs in | check-id | evidence or reason |
@@ -228,7 +256,7 @@ Findings are the check working on today's code. Fix them with `static-analysis` 
 - <created / edited files>
 
 ### Broken (not done)
-- <check-id>: <error lines from the log>. Tried: <fixes>. Needs: <what the user must do>.
+- <check-id>: <error lines from the log>. Tried: <fixes>. Needs: <what the user must do, also listed in "Needs from you">.
 
 ### Version mismatches
 - <check-id>: CI <v>, local <v>, reason.
@@ -243,9 +271,6 @@ Write "All current" when nothing is behind. Flag a new major version, because it
 
 ### Not set up
 - <check-id>: <reason> (needs cloud credential, runs only in CI, user declined).
-
-### Needs secrets to run
-- <check-id>: <VAR names>. Put them in your shell or `.env`.
 
 ### CI suggestions (not applied)
 Checks that run locally but not in CI can be added to GitHub Actions with `github-pipelines`.
@@ -320,4 +345,6 @@ docker compose --profile pipelines run --rm <check-id>
 - [ ] Parallel tests are set up when needed, and report the same test count as the serial run.
 - [ ] The no-profile service list is unchanged.
 - [ ] No CI file and no existing service changed.
-- [ ] The report lists verdicts, mismatches, outdated items, checks not set up, and secret names needed.
+- [ ] The report starts with "Needs from you", and lists verdicts, mismatches, outdated items, checks not set up, and secret names needed.
+- [ ] The run directory holds the ledger, the scan report, and a log for every run in the report. The ledger matches the report.
+- [ ] The user was asked in rounds: once in Step 2, the plan in Step 4, and once in Step 6.13 if there were decisions.

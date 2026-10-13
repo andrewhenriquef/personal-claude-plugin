@@ -115,10 +115,15 @@ Check `requires` without printing values: `[ -n "${VAR+x}" ]` in the shell, or `
 
 ### Step 4: Run
 
+0. Create the **run directory** in the git directory, outside the working tree. Each shell command starts a new shell, so start every later command that uses it with `run=<the printed path>`:
+   ```
+   run="$(git rev-parse --absolute-git-dir)/pipelines/run-$(date -u +%Y%m%dT%H%M%SZ)"; mkdir -p "$run/logs" && echo "$run"
+   ```
+   Write the plan (mode, scope, selected and skipped checks) to `$run/results.md`, and add one row per check as it finishes: result, mode, files, time, exit code, log path. Read that file, not the conversation, to see where the run is.
 1. Order: the category order in selection.md (fast and cheap first: format, lint, secrets, then build and tests). Within a category, `blocking: required` first. A check with `reads: <id>` runs right after `<id>`.
 2. Build the command: `docker compose --profile pipelines run --rm -T <id> <command>`, with `{files}` and `{dirs}` replaced as in selection.md. `-T` gives clean, non-interactive output. For `writes: true` checks, prefix it with `env UID="$(id -u)" GID="$(id -g)"`: shells do not export these, and without them Compose runs the check as `1000:1000`.
-3. **Report readers.** Before the full run of a check that another check `reads`, record the time: `since=$(( $(date +%s) - 5 ))`. Run the reader with `env PIPELINES_SINCE="$since" docker compose ...`, so it rejects a report from an earlier run. If the source check is `error`, the reader is `error` too ("no report: `<id>` did not run"), and is not run. If the source check is `fail` (failing tests), the reader still runs: the report exists.
-4. Save each check's full output to a log in a temp directory outside the repo (`mktemp -d`). Record exit code and duration.
+3. **Report readers.** Before the full run of a check that another check `reads`, write the time to a file: `echo $(( $(date +%s) - 5 )) > "$run/since-<id>.txt"`. Run the reader with `env PIPELINES_SINCE="$(cat "$run/since-<id>.txt")" docker compose ...`, so it rejects a report from an earlier run. If the source check is `error`, the reader is `error` too ("no report: `<id>` did not run"), and is not run. If the source check is `fail` (failing tests), the reader still runs: the report exists.
+4. Save each check's full output to `$run/logs/<id>.log`. Record the exit code and the duration in `$run/results.md`.
 5. One check at a time. Checks share test services, and parallel runs fight over them.
 6. **fail fast** (only when asked): stop after the first `blocking: required` failure.
 
@@ -150,6 +155,8 @@ Never run `docker compose down`. It also stops the developer's own app container
 
 Scope: <N files, base main> or <full suite>. Unstaged edits to in-scope files were included.
 Blocking checks: PASS | FAIL (<N> failed).
+Needs from you: <what only you can fix before the checks can run (start Docker, set `<VAR>`, run `build-pipelines`), or "nothing">.
+Run directory: <path> (results.md, logs).
 
 | check | result | mode | files | time | log |
 |---|---|---|---|---|---|

@@ -140,7 +140,7 @@ Then read [references/catalog.md](references/catalog.md). For each category:
 
 For each suggestion record: category, evidence (`file` or dependency), recommended tool, priority, and effort.
 
-- **Tool choice.** A tool already in the dependencies or configs wins, with no research. Otherwise research 2 to 4 candidates with [references/tool-research.md](references/tool-research.md), and put the recommended one in the suggestion. The others go in the Tool options section, not in the suggestions table. One suggestion per category.
+- **Tool choice.** A tool already in the dependencies or configs wins, with no research. Otherwise research 2 to 4 candidates with [references/tool-research.md](references/tool-research.md), and put the recommended one in the suggestion. With 3 or more checks to research, use the fan-out in tool-research.md: one subagent per check, and verify each table before you use it. The others go in the Tool options section, not in the suggestions table. One suggestion per category.
 - **Priority.** Use the default in the catalog. Raise or lower it only with a reason from the repo, and state the reason.
 - **Effort.** `S`: add a step that uses existing config. `M`: new config or a service in CI. `L`: new infrastructure, a paid service, or a big first-run fix backlog.
 
@@ -150,6 +150,10 @@ Use this template. Keep tables short. Do not repeat a check in two sections.
 
 ```
 ## Pipeline scan: <repo or package>
+
+### Needs human check
+- <item you could not verify, and why> (for example branch protection without `gh`).
+Write "Nothing" when there is nothing.
 
 ### Stack
 - <language/framework/service>: <evidence file>
@@ -182,9 +186,6 @@ Baseline items first, then must, should, could.
 ### Tool options (new tools only)
 One status table per suggestion with no tool in the project, in the shape of tool-research.md. Recommended first (★), with the reason.
 `build-pipelines` asks which one to use.
-
-### Needs human check
-- <item you could not verify, and why> (for example branch protection without `gh`).
 
 ### Next step
 `build-pipelines` sets up these checks in Docker. `document-pipelines` writes them to `docs/pipelines.md`. Checks that run only locally: `github-pipelines` adds them to GitHub Actions.
@@ -229,5 +230,6 @@ If the repo has no checks at all, say so plainly. Then show the baseline table a
 - [ ] Every baseline item has a row with a status and evidence, and every `missing` or `partial` item is a `must` suggestion.
 - [ ] Every suggestion has evidence, one tool, a priority, and an effort.
 - [ ] Every suggestion with no tool in the project has a status table from this run (stars, last commit, latest release, status), and exactly one recommended tool with a reason.
+- [ ] Every table from a subagent was verified with one call of your own before it went into the report.
 - [ ] No secret values in the report.
 - [ ] No check was run and no file was written.

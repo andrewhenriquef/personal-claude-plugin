@@ -33,7 +33,7 @@ Then:
 1. Map the release to the image tag. Release `v8.21.2` can be tag `v8.21.2` or `8.21.2`, and some images add a suffix (`-alpine`). Use the form in the image column below.
 2. Confirm the tag with `docker manifest inspect <image:tag>`. An image can lag the release by hours. If the tag is missing, use the newest stable tag that exists and say why.
 3. A new major version can change the config format (golangci-lint v1 to v2, ESLint 8 to 9). For a new check, write the config for that major. For an existing check, flag the major jump in the Outdated report.
-4. If a lookup fails (no network, rate limit), say so and ask the user. Never guess.
+4. If a lookup fails (no network, rate limit), say so, and put the question in the next round of questions the calling skill already has (the plan approval). Do not stop only for it. Never guess.
 
 ## Runs in the app image
 

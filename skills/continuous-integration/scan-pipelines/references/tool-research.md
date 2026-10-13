@@ -52,6 +52,20 @@ If `gh` is missing or not authenticated, read the same endpoints with `curl -fsS
 
 Today's date is the reference for every age. Write ages as days or months, not only dates.
 
+## Fan-out to subagents
+
+With 3 or more checks to research, and an authenticated `gh` (the unauthenticated limit covers only about two checks, so do them yourself), research each check in its own subagent when the tool has them (Claude Code: the `Agent` tool with a general-purpose agent; Cursor: the Task tool). Start them all in one message.
+
+Give each subagent: the check and its category, the stack facts it needs (language, framework, runtime version), this file's sections "Candidates", "Status of each candidate", "Activity status", and "Recommendation", and these rules: read-only, only the commands this file lists, no installs, no file writes. It returns the status table, and for each candidate the raw value and the exact command behind each field.
+
+Check each table before you use it:
+
+1. Run one status call yourself for the recommended candidate (`releases/latest`, or the last commit) and compare the value with the table.
+2. Check that the recommendation follows the ranking rules with the numbers in the table, and that no `stale` or `archived` tool is recommended.
+3. If a value differs or a rule is broken, research that check yourself. Do not patch the subagent's table.
+
+Subagents share the rate limit. If one reports a 403 or 429, follow the rate-limit rule above for every check still open.
+
 ## Activity status
 
 | Status | Rule |

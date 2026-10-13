@@ -48,7 +48,8 @@ This is the fifth skill of the `continuous-integration` family:
 - **Never put `${{ ... }}` expressions from event data inside `run:`.** Pass values through `env:`.
 - **Secrets by name only.** `${{ secrets.NAME }}` for every name in `requires`. Never a value, never a secret in a `run:` line.
 - **Never weaken a check** to get green: no `continue-on-error`, no ignore entries, no lower thresholds.
-- **Ask before you write, and again before anything leaves the machine.** Show the plan in Step 4. Commit, push, and opening a PR each need the user's approval in Step 7.
+- **Ask before you write, and again before anything leaves the machine.** Show the plan in Step 4. Commit, push, and opening a PR need the user's approval: one approval in Step 7 that lists every action, in order.
+- **Keep the run state on disk.** The ledger lives in the run directory (Step 0.6). Read it, not the conversation, to see where the run is.
 - **Never change repository settings** (branch protection, required checks, secrets). Report what the user should set.
 
 ## Process
@@ -57,9 +58,23 @@ This is the fifth skill of the `continuous-integration` family:
 
 1. **Manifest.** Read `docs/pipelines.md`, between `<!-- pipelines:manifest:start -->` and `<!-- pipelines:manifest:end -->`. If the doc or the markers are missing, tell the user, then **Claude Code:** call `Skill(skill: "document-pipelines")`. **Cursor:** read and follow the `document-pipelines` skill's `SKILL.md` in full. It calls `build-pipelines` and `scan-pipelines` when needed. Start again when it is done.
 2. **Compose.** `docker compose --profile pipelines config --no-interpolate --format json`. For each check, take the image or build, the services it depends on (with their image tags and healthchecks), the environment names, and the `x-pipelines` block. If the manifest and the compose file differ, the compose file wins: call `document-pipelines` to refresh the doc, as `run-pipelines` does.
-3. **Existing CI.** Reuse the `scan-pipelines` report from this session if nothing changed since. Otherwise **Claude Code:** call `Skill(skill: "scan-pipelines")`. **Cursor:** read and follow the `scan-pipelines` skill's `SKILL.md` in full. You need its inventory of checks that CI runs, and the branch protection result.
+3. **Existing CI.** Reuse the `scan-pipelines` report from this session if nothing changed since, or the newest `$(git rev-parse --absolute-git-dir)/pipelines/build-*/scan.md` when its `Commit:` line is the current `HEAD`. Otherwise **Claude Code:** call `Skill(skill: "scan-pipelines")`. **Cursor:** read and follow the `scan-pipelines` skill's `SKILL.md` in full. You need its inventory of checks that CI runs, and the branch protection result.
 4. **Remote.** `git remote get-url origin` must point to GitHub. If not, stop and report **Blocked**. Find the default branch: `git symbolic-ref refs/remotes/origin/HEAD`, or `gh repo view --json defaultBranchRef`.
 5. **Files the jobs need.** The jobs run on what is committed, not on the working tree. List the files the added checks use besides the app code: `docker/pipelines/coverage-gate.sh`, `docker/pipelines/Dockerfile.*`, new tool configs, and the baseline app changes (`Gemfile`, lockfile, `spec_helper.rb`). For each, check it is committed (`git status --porcelain -- <path>` is empty) and on the base branch (`git cat-file -e origin/<default>:<path>`). A file that is uncommitted or missing from the base branch goes into the Step 7 commit, with the user's approval. Say which in the plan.
+6. **Run directory.** Create it in the git directory, outside the working tree. Each shell command starts a new shell, so start every later command that uses it with `run=<the printed path>`:
+   ```
+   run="$(git rev-parse --absolute-git-dir)/pipelines/github-$(date -u +%Y%m%dT%H%M%SZ)"; mkdir -p "$run" && echo "$run"
+   ```
+   Keep `$run/ledger.md` current after every step and every CI round:
+   ```
+   # github-pipelines run
+   Run dir: <path>. Step: <N>.
+   Needs from you: <the open question, or "nothing">
+   Plan (approved <date>): <job: version, command>
+   Approved actions (Step 7): <list, or "not asked yet">
+   Branch: ci/pipelines. PR: <url>. Runs: <ids>
+   | job | round | GitHub verdict | local verdict | log lines |
+   ```
 
 ### Step 1: Select the missing checks
 
@@ -93,7 +108,7 @@ For each check to add, plan one job. Its id is the check id, so the status check
    - **`<id>` is added by this workflow:** its job uploads the report as an artifact after the tests, even when they fail (`if: ${{ !cancelled() }}`). The reader's job has `needs: <id>` and `if: ${{ !cancelled() }}`, downloads the artifact to the same path, sets up only the runtime the gate needs (no dependency install, no services), and runs the manifest `full` command: the gate. Pattern D in workflow-patterns.md.
    - **`<id>` already runs in existing CI:** that job cannot be edited, so its report is not shared. The reader's job runs the `<id>` full command, then the gate, in one job. Report the double run, and suggest (not applied) an upload step in the existing job.
 9. **Version check.** Compare each job's runtime and tool version with the local service (image tag, lockfile, Dockerfile). Any difference must be fixed in the plan, not reported.
-10. **Pins.** Look up the latest stable release and its commit SHA for every action you use (see workflow-patterns.md). If the lookup fails, ask the user. Never write a SHA from memory.
+10. **Pins.** Look up the latest stable release and its commit SHA for every action you use (see workflow-patterns.md). If the lookup fails, say so in the plan, and ask for the SHA in the Step 4 approval. Never write a SHA from memory.
 
 ### Step 3: Check the plan for conflicts
 
@@ -123,7 +138,7 @@ Wait for the user to approve. Apply only what they approve.
 ### Step 5: Write
 
 1. Write `.github/workflows/pipelines.yml` from the patterns, starting with the managed header comment.
-2. One job per check, in the category order of `run-pipelines` (lint and security first, tests last). `timeout-minutes` on every job: twice the local full-run time from the build or run logs, at least 10.
+2. One job per check, in the category order of `run-pipelines` (lint and security first, tests last). `timeout-minutes` on every job: twice the local full-run time, at least 10. Read the time from the newest `build-pipelines` ledger or `run-pipelines` `results.md` in `$(git rev-parse --absolute-git-dir)/pipelines/`. With no recorded time, use 30 and say so in the plan.
 3. Do not touch any other file. The x-pipelines updates wait for Step 8.
 
 ### Step 6: Validate locally
@@ -137,12 +152,17 @@ Run both on the new file only, with the pinned images from `build-pipelines`' to
 
 ### Step 7: Run it on GitHub (needs approval)
 
-Ask the user before each action that leaves the machine. Show exactly what will happen:
+Ask once, before the first action that leaves the machine. Show the whole sequence, with the exact branch, files, and commands, and ask for one approval that covers all of it:
 
-1. Create a branch `ci/pipelines` from the default branch (`origin/<default>`), so the PR shows only this change. Commit `.github/workflows/pipelines.yml` and the files Step 0.5 found missing from the base. If those files live on an unmerged branch instead, ask the user: base `ci/pipelines` on that branch, or wait until it is merged.
+1. Create a branch `ci/pipelines` from the default branch (`origin/<default>`), so the PR shows only this change. Commit `.github/workflows/pipelines.yml` and the files Step 0.5 found missing from the base. If those files live on an unmerged branch instead, add that choice to the same question: base `ci/pipelines` on that branch, or wait until it is merged.
 2. Push the branch.
 3. Open a draft pull request against the default branch (`gh pr create --draft`), so the `pull_request` trigger runs.
-4. Wait for the run: `gh run list --branch ci/pipelines --workflow pipelines.yml`, then `gh run watch <id> --exit-status`. Read each job's conclusion and log: `gh run view <id> --log` (`--log-failed` for the failed ones).
+4. Fix-up commits and pushes to this branch only, for broken jobs (at most three rounds per job).
+5. The Step 8 commit: the `x-pipelines` updates of the added checks and the refreshed doc, on this branch.
+
+If the user approves only part of the sequence, do only that part, and stop where the approval ends. Record the approved actions in the ledger.
+
+Then wait for the run: `gh run list --branch ci/pipelines --workflow pipelines.yml`, then `gh run watch <id> --exit-status`. Read each job's conclusion and log: `gh run view <id> --log` (`--log-failed` for the failed ones).
 
 If `gh` is missing or not authenticated: push only with approval, give the user the branch and the compare URL to open the PR, and ask them to paste the run result. Do not mark the work done without it.
 
@@ -158,15 +178,15 @@ Classify each job with "Reading a result" in `build-pipelines`' [tool-images.md]
 
 Checks that read an online database (dependency audit, Trivy, OSV-Scanner, Semgrep registry rules) can differ when the database changed between the two runs. Run the local check again right after the GitHub run. If the counts then match, it is parity. If the difference is a new advisory, name it.
 
-Fix a `broken` job in the workflow file, commit, push (the push approval from the first round covers fix-up pushes to this branch only), and wait again. At most three rounds per job. Then report it as **Not done** with the log lines.
+Fix a `broken` job in the workflow file, commit, push (the approval covers fix-up pushes to this branch only), and wait again. Record each round in the ledger. At most three rounds per job. Then report it as **Not done** with the log lines.
 
 ### Step 8: Record and document
 
 When every new job has a verdict that matches local:
 
-1. Show the user the change, then update **only** the `x-pipelines` block of each added check in the compose file: `source` becomes `.github/workflows/pipelines.yml:<line of the job>`, `ci_version` becomes the CI version (equal to local), `blocking` becomes `fails-job`. Change nothing else in the compose file.
+1. Update **only** the `x-pipelines` block of each added check in the compose file: `source` becomes `.github/workflows/pipelines.yml:<line of the job>`, `ci_version` becomes the CI version (equal to local), `blocking` becomes `fails-job`. Change nothing else in the compose file.
 2. Refresh the doc: **Claude Code:** call `Skill(skill: "document-pipelines")`. **Cursor:** read and follow its `SKILL.md`.
-3. Commit these two files on the same branch only if the user approves.
+3. Commit these two files on the same branch, if the Step 7 approval covered it (action 5). Otherwise show the diff and ask.
 
 ### Step 9: Report
 
@@ -174,7 +194,13 @@ When every new job has a verdict that matches local:
 ## GitHub pipelines: <repo>
 
 Status: **Done** (every new job matches local) | **Not done** (<N> broken).
-PR: <url> (draft). Run: <url>.
+PR: <url> (draft). Run: <url>. Run directory: <path>.
+
+### Needs from you
+- Secrets to add (repository settings): <NAME>, used by <job>.
+- Required checks to set (Settings → Branches): <job ids of blocking checks>. Ask me to show the `gh api` call.
+- Broken jobs that need you: <job>: <what to do>.
+Write "Nothing" when there is nothing.
 
 ### Added (<N>)
 | job | category | version (local = CI) | GitHub verdict | local verdict | time |
@@ -185,12 +211,6 @@ PR: <url> (draft). Run: <url>.
 
 ### Broken (not done)
 - <job>: <log lines>. Tried: <fixes>. Needs: <what the user must do>.
-
-### Secrets to add (repository settings)
-- <NAME>: used by <job>.
-
-### Branch protection (not changed)
-Suggested required checks: <job ids of blocking checks>. Set them in Settings → Branches, or ask me to show the `gh api` call.
 
 ### Differences found in existing CI (not changed)
 - <id>: CI at <file:line> runs <command/version>, local runs <command/version>.
@@ -238,7 +258,8 @@ Mark the PR ready for review when the findings are fixed, or merge it to start g
 - [ ] Every action is pinned to a commit SHA of its latest stable release, looked up in this run.
 - [ ] Top-level `permissions: contents: read`, `persist-credentials: false`, no `pull_request_target`, no event data in `run:`.
 - [ ] actionlint passes, and zizmor has no medium or higher findings.
-- [ ] The user approved the plan, the commit, the push, and the PR.
+- [ ] The user approved the plan in Step 4, and the Step 7 sequence in one approval. Nothing outside the approved actions was done.
 - [ ] Every new job ran on GitHub, and its verdict and finding count match local.
 - [ ] Only the `x-pipelines` blocks of added checks changed in the compose file, and the doc was refreshed.
-- [ ] The report lists secrets to add and suggested required checks, and no repository setting was changed.
+- [ ] The report starts with "Needs from you" (secrets to add, required checks to set, broken jobs), and no repository setting was changed.
+- [ ] The ledger records the plan, the approved actions, and every CI round.
