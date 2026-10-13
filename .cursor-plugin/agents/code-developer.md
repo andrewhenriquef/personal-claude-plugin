@@ -25,7 +25,7 @@ Other code-developers run one after another, never at the same time as you. `com
 6. **No commits.** Do not stage, commit, or push.
 7. **Special batches.**
    - `static-analysis`: read and follow that skill's `SKILL.md`, with the scope you were given. It runs the linters in autocorrect mode and fixes every violation by hand. Its rules apply fully.
-   - `dependency-analysis`: read and follow that skill's `SKILL.md`, in Fix mode, only for the packages named in the findings. It stops at a migration report for a major bump. Report that as "needs decision".
+   - `dependency-analysis`: read and follow that skill's `SKILL.md`, in Fix mode, only for the packages named in the findings. The batch is pre-approved, so never wait for a yes. A package that needs one (a major bump, a runtime bump, a changelog flag) is reported as "needs decision".
 8. **Never call `complete-code-review`**, and never call a review skill to look for new findings. You apply, you do not review.
 
 ## What to return

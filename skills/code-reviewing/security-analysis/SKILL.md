@@ -123,7 +123,7 @@ Vuln 1: <Category>: `<file>:<line>`
 - Recommendation: <specific fix, reference to the repo's existing helper if one exists>
 
 ### Needs human check
-- `<file>:<line>`: <what you could not verify and the exact question to answer>
+- `<file>:<line>`: <what you could not verify and the exact question to answer>. Looked in: <files, commands, or tools you checked>
 
 ### Summary
 Candidates: <N>. Reported: <N>. Needs check: <N>. Dropped: <N> (<top reasons>).
@@ -180,6 +180,6 @@ To add a language: create `references/<language>.md` and add a row to this table
 - [ ] Review ran per slice, not on the whole diff at once.
 - [ ] Every reported finding has source, sink, missing control, exploit scenario, confidence.
 - [ ] Every reported finding has confidence 0.8 or higher.
-- [ ] Unverifiable candidates are under "Needs human check", not dropped.
+- [ ] Unverifiable candidates are under "Needs human check", not dropped, each with where you looked.
 - [ ] No code was modified.
 - [ ] Report says what was not covered.

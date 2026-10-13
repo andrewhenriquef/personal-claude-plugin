@@ -80,7 +80,7 @@ If the tool reports a config error or a missing plugin, the run is **Blocked**. 
 
 Run the project's tests that cover the changed files. A green baseline before Step 2 is best. If tests fail after autocorrect, find the fix that broke them, revert that fix, and handle the finding by hand in Step 4.
 
-If there are no tests for the code, tell the user. Review the autocorrect diff more carefully instead.
+If there are no tests for the code, say so in the report. Then read every hunk of the autocorrect diff. Revert each hunk that can change behavior (a changed condition, a removed call, a changed return value or error), and fix that finding by hand in Step 4.
 
 ### Step 4: Fix the rest by hand
 

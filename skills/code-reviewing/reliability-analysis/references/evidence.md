@@ -54,7 +54,7 @@ When the session has Datadog MCP tools, read [datadog.md](datadog.md) for the to
 - State the tool, service, environment, and window for every number you use.
 - Production data describes the deployed code. It calibrates a finding (how often, how bad). It does not prove that the diff is broken.
 
-If there are no Datadog tools, say "No Datadog data", and ask the user once for the numbers you need.
+If there are no Datadog tools, say "No Datadog data", and list the numbers you need under "Needs human check". Do not stop to ask.
 
 ## Race detector and repeated runs
 

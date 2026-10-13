@@ -62,7 +62,7 @@ Use a profile to find where time or memory goes, when there is a benchmark or a 
 
 - Profile the benchmark or the covering test, with realistic data.
 - Read the top entries by cumulative cost. Check if the suspect code is in them. If it is not, it is not the bottleneck, and the candidate is dropped or reduced to LOW.
-- Do not attach a production profile. If the project has one, ask the user for it.
+- Do not attach a production profile. If one would settle a candidate, say so under "Needs human check".
 
 ## Baseline in a separate worktree
 

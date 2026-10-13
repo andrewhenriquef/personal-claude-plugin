@@ -51,7 +51,7 @@ This skill is read-only. Report findings. Do not change code unless the user ask
    - **Delivery guarantee:** does the queue, the job runner, or the webhook sender deliver at least once? Can the same message arrive twice?
    - **Process model:** how many processes and threads run the code (for example Puma threads, several pods, one worker with many goroutines).
    - **Observability stack:** Datadog is the default. Find the service names, the environment, whether the tracer and log injection are on, and where the monitors are defined. Read [references/datadog.md](references/datadog.md). If the project uses another stack, say so and follow it.
-   - **What the owner expects on failure:** error to the user, retry later, drop it, or page someone. Look for a spec, a ticket, a comment, or the way the repo handles the same case elsewhere. If you cannot find it, ask the user once. If the user does not know, say what you assumed.
+   - **What the owner expects on failure:** error to the user, retry later, drop it, or page someone. Look for a spec, a ticket, a comment, or the way the repo handles the same case elsewhere. If you cannot find it, do not stop to ask. Assume the behavior the repo uses for similar cases, mark it "assumed", and put the question under "Needs human check".
 
 If a part of the model is unknown and it changes the answer, that candidate goes to "Needs human check".
 
@@ -192,7 +192,7 @@ Rel 1: <Area>: `<file>:<line>`
 - Confirm with: <the test or command that shows the fix works>
 
 ### Needs human check
-- `<file>:<line>`: <what you could not verify and the exact question, for example "does the queue deliver twice?">
+- `<file>:<line>`: <what you could not verify and the exact question, for example "does the queue deliver twice?">. Looked in: <files, commands, or tools you checked>
 
 ### Linter rules to consider
 - <rule or tool the project could enable, and where it would have helped>. The user decides.

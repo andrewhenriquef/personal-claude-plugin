@@ -17,7 +17,7 @@ This skill works in three modes. The user's request picks the mode:
 | **Audit** | "Audit the dependencies", "any vulnerable packages", "what is outdated" | Reviews the whole dependency tree. Read-only |
 | **Fix** | "Update X", "fix this advisory", "bump", "triage this Dependabot alert or PR" | Applies the smallest safe update, then verifies. Changes manifests and lockfiles only |
 
-Review and Audit never edit files. Fix mode edits only manifests and lockfiles, and only after the confirmations in Step 6.
+Review and Audit never edit files. Fix mode edits only manifests and lockfiles, under the confirmation rules in Step 6.
 
 ## Why this process
 
@@ -59,7 +59,7 @@ Review and Audit never edit files. Fix mode edits only manifests and lockfiles, 
 | Which dependencies ship in production, and which are build or test only | Decides exposure |
 | Policies: allowed licenses, update cadence, ignore lists | The project's rules win |
 
-If a fact is missing, ask the user once for the whole list. Mark anything you assume.
+If a fact is missing, do not stop to ask. Assume the most likely value, mark it "assumed", and put the question under "Needs human check" in the report.
 
 ### Step 1: Find and run the project's existing tools
 
@@ -164,7 +164,7 @@ Dep 1: <Category>: `<package>` <version> (<direct | transitive via X>, <runtime 
 | Package | Version | Why added | Source | Health | Verdict |
 
 ### Needs human check
-- `<package>`: <what you could not verify and the exact question>
+- `<package>`: <what you could not verify and the exact question>. Looked in: <files, commands, or registries you checked>
 
 ### Improvements
 - <unused dependency, undeclared import, loose constraint, overlap, missing integrity feature, tool config that weakens a check>
@@ -187,9 +187,9 @@ If there are no findings, say so plainly, with what you checked. Do not invent f
 Read [references/update-playbook.md](references/update-playbook.md) first. The short form:
 
 1. **Choose the target.** The lowest version that clears every advisory on the package, not the latest. For a transitive package, update the direct parent first. Use an override or a replace only as a last resort, with a note.
-2. **Classify the bump.** Patch and minor: continue. Major, or a bump that raises the runtime requirement: stop. Produce the migration report from the playbook and ask the user before you apply.
+2. **Classify the bump.** Patch and minor: continue. Major, or a bump that raises the runtime requirement: stop for this package. Produce the migration report from the playbook and ask before you apply.
 3. **Choose the track.** Standard track by default: read the changelog, flag the keywords, and confirm. Fast track only for a patch or minor bump of a package used only in build or test, with no high or critical advisory. Fast track skips the changelog read. It never skips the tests or the lockfile check.
-4. **Confirm before editing.** Say the package, the from and to versions, the bump class, and the exposure. Wait for a yes. Ask twice if the changelog has breaking-change flags.
+4. **Wait for a yes only when the bump needs one.** The user's request is the go-ahead for a patch or minor bump with no changelog flag: state the package, the from and to versions, the bump class, and the exposure in the same message as the command, and go on. Ask once, and wait, for a changelog flag, a major bump, or a runtime bump. When an agent runs this skill, never wait: report those packages as "needs decision". The playbook, section 5, has the table.
 5. **Apply with the narrowest command** from the language reference. One package per change. Do not run a blanket update. Do not use `latest`.
 6. **Check the lockfile diff.** It must contain the intended package and only the transitive changes it needs. If it holds more, find out why.
 7. **Check lockfile parity** when more than one lockfile or package manager covers the same package. If they disagree, stop and report it. Do not leave a half-fixed state.
@@ -253,8 +253,8 @@ To add a language: create `references/<language>.md` with the same sections and 
 - [ ] Every vulnerability finding has an exposure statement and an evidence line, not a score alone.
 - [ ] Transitive findings name the direct package that pulls them in.
 - [ ] New dependencies were read without running them.
-- [ ] Unverifiable candidates are under "Needs human check", not dropped.
+- [ ] Unverifiable candidates are under "Needs human check", not dropped, each with where you looked.
 - [ ] Review and Audit: no file was modified.
-- [ ] Fix mode: minimal target, confirmation, narrow command, lockfile diff checked, parity checked, scanner re-run, tests and build pass.
+- [ ] Fix mode: minimal target, a yes for every flagged, major, or runtime bump, narrow command, lockfile diff checked, parity checked, scanner re-run, tests and build pass.
 - [ ] No ignore entry or suppression was added.
 - [ ] Report says what was not covered.
