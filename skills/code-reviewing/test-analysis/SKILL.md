@@ -14,7 +14,7 @@ This skill is read-only. Report findings. Do not edit code or tests unless the u
 ## Why this process
 
 1. **Coverage is not protection.** A line can run in a test and still have no assertion about it. Coverage is a candidate generator, not a verdict.
-2. **Generated tests are the usual weak spot.** Studies of LLM-written tests find weak assertions, boundary blindness, and assertions copied from what the code does, not from what it should do. Review tests written by an agent with extra care.
+2. **Generated tests are the usual weak spot.** Studies of LLM-written tests find weak assertions, boundary blindness, and assertions copied from what the code does, not from what it should do. For a test written by an agent, check each expected value against the intended behavior, not against what the code returns.
 3. **Proof beats opinion.** "This test looks weak" is an opinion. "I changed `>=` to `>` on line 42 and every test still passed" is evidence.
 4. **A test that was edited to pass is a warning.** If a change alters production code and also loosens a test, ask why.
 
@@ -131,7 +131,7 @@ Test 1: <Smell>: `<file>:<line>`
 - Fix: <the test to add or change: case name, input, expected value>
 
 ### Needs human check
-- `<file>:<line>`: <what you could not verify and the exact question>
+- `<file>:<line>`: <what you could not verify and the exact question>. Looked in: <files, commands, or tools you checked>
 
 ### Summary
 Behaviors checked: <N>. Mutants run: <N>, killed: <N>, survived: <N>. Findings: <N>. Needs check: <N>. Dropped: <N> (<top reasons>).
@@ -198,6 +198,6 @@ To add a language: create `references/<language>.md` with the same sections and 
 - [ ] Mutants ran only in a separate worktree, and the worktree was removed.
 - [ ] Every reported finding has evidence.
 - [ ] Weakening in the test diff was checked.
-- [ ] Unverifiable candidates are under "Needs human check", not dropped.
+- [ ] Unverifiable candidates are under "Needs human check", not dropped, each with where you looked.
 - [ ] No code or test file in the working tree was modified.
 - [ ] Report says what was not covered.

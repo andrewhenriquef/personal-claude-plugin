@@ -7,7 +7,7 @@ description: Review database migrations and data-handling code in a change for d
 
 > Evidence sources: [strong_migrations](https://github.com/ankane/strong_migrations), [Squawk rules](https://squawkhq.com/docs/rules), [Atlas migration analyzers](https://atlasgo.io/lint/analyzers), [database_consistency](https://github.com/djezzzl/database_consistency), [active_record_doctor](https://github.com/gregnavis/active_record_doctor), and the expand-and-contract pattern ([Xata](https://xata.io/blog/zero-downtime-schema-migrations-postgresql)). Structure follows [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills).
 
-A migration runs once, on real data, often on a live system, and is hard to undo. Data bugs stay in the database after the code is fixed. Review both with more care than ordinary code.
+A migration runs once, on real data, often on a live system, and is hard to undo. Data bugs stay in the database after the code is fixed. So rate every finding on the real engine, version, and table size, and check both code versions that run during the deploy.
 
 This skill covers two things:
 
@@ -45,7 +45,7 @@ This skill is read-only. Report findings. Do not edit code unless the user asks 
 3. Review the whole schema or all migrations only when the user asks for a full review.
 4. Pick the relevant files: migration files, schema files (`schema.rb`, `structure.sql`, `*.sql`), models and entities, repositories and queries that write data, backfill scripts, rake tasks, jobs, and seeds. If none are in scope, tell the user there is nothing for this skill to review.
 5. Detect the language and framework (see Language references). Read the matching reference now.
-6. Find the facts below. Look in `CLAUDE.md`, README, `docker-compose.yml`, CI config, `Gemfile.lock` or `go.mod`, and the existing migrations. If a fact is missing, ask the user once for the whole list. If the user does not know, rate the finding as "depends on size" and say what you assumed.
+6. Find the facts below. Look in `CLAUDE.md`, README, `docker-compose.yml`, CI config, `Gemfile.lock` or `go.mod`, and the existing migrations. If a fact is missing, do not stop to ask. Mark it "assumed", rate the findings that hinge on it as "depends on size", and put the question under "Needs human check".
 
 | Fact | Why it matters |
 |---|---|
@@ -158,7 +158,7 @@ Finding 1: <Category>: `<file>:<line>`
 - Safe approach: <the specific steps, for example expand-and-contract in two deploys>
 
 ### Needs human check
-- `<file>:<line>`: <what you could not verify and the exact question, for example "row count of orders?">
+- `<file>:<line>`: <what you could not verify and the exact question, for example "row count of orders?">. Looked in: <files, commands, or tools you checked>
 
 ### Summary
 Candidates: <N>. Reported: <N>. Needs check: <N>. Dropped: <N> (<top reasons>).
@@ -224,7 +224,7 @@ To add a language: create `references/<language>.md` with the same sections and 
 - [ ] Review ran per slice, not on the whole diff at once.
 - [ ] Both code-and-schema orders were checked for every schema change.
 - [ ] Every reported finding has an operation, a failure scenario, evidence, and a safe approach.
-- [ ] Unverifiable candidates are under "Needs human check", not dropped.
+- [ ] Unverifiable candidates are under "Needs human check", not dropped, each with where you looked.
 - [ ] No migration or backfill ran against a shared database.
 - [ ] Libraries from the manifests were checked, not only the tools named in this skill.
 - [ ] Tool output was verified, not pasted.

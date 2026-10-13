@@ -38,7 +38,7 @@ Notes:
 - For `full`, say "full" and let the skill follow its full-review path.
 - For `reliability-analysis`, add: "Datadog tools may be available in this session. Use them read-only, as the skill says."
 - For `test-analysis`, add the intent in more detail if you have it. The skill uses it to judge whether tests check the right behavior.
-- For `data-and-migration-analysis`, add anything the user said about the database engine, the table sizes, and the deploy order. The skill asks for them otherwise, and an agent cannot ask the user.
+- For `data-and-migration-analysis`, add anything the user said about the database engine, the table sizes, and the deploy order. Otherwise the skill marks them as assumed, and its findings are weaker.
 - If the skill needs a fact that you do not have, tell the agent to put the question under "Needs human check". Do not let it stall.
 
 ## Fix prompt
@@ -69,7 +69,8 @@ For the `dependency-analysis` batch:
 
 ```
 Run the skill `dependency-analysis` in Fix mode, only for these packages: <name, from version, target version, the finding>.
-Stop at a migration report for any major bump and report it as "needs decision".
+This batch is pre-approved. Do not wait for a confirmation: apply each patch or minor bump with no changelog flag.
+For a major bump, a pre-1.0 minor, a runtime bump, or a changelog flag, stop for that package, and report it as "needs decision" with the migration report or the flagged lines.
 ```
 
 ## Reading what comes back

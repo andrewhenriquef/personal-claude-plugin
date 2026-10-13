@@ -41,7 +41,8 @@ This skill does not review code itself. It decides which review skills a change 
 5. If the scope is empty, say so and stop.
 6. Find the intent of the change, without asking if you can avoid it: the user's words, the commit messages on the branch (`git log main..HEAD --format=%B`), the PR description if the `gh` CLI is available (`gh pr view`, read-only), a plan or ticket in the repo. A PRD only if one exists. If you infer the intent, mark it lower confidence. The agents use it.
 7. Detect the languages in scope (`go.mod`, `*.go`, `Gemfile`, `*.rb`) and the project's test and lint commands (`CLAUDE.md`, `Makefile`, `Rakefile`, CI config). The agents use these too.
-8. Take the **tree snapshot** described in [references/merge-and-apply.md](references/merge-and-apply.md) (section "Tree snapshot"). You compare against it after every review agent.
+8. Create the **run directory and ledger** described in [references/merge-and-apply.md](references/merge-and-apply.md) (section "Run directory and ledger"). Write the scope, the intent, and the mode into the ledger. From here on, update the ledger after every step, agent, and batch, and read it, not the conversation, to see where the run is.
+9. Take the **tree snapshot** described in the same reference (section "Tree snapshot"). You compare against it after every review agent.
 
 If the user said "review only", "no changes", or "just report", note that. The process stops after Step 5.
 
@@ -80,7 +81,7 @@ Read [references/agent-prompts.md](references/agent-prompts.md) for the prompt o
 2. Start the whole parallel group in **one message**, so the agents run at the same time. You may start the first queued agent in the same message.
 3. Start each next queued agent when the previous queued agent returns. Run `performance-analysis` last, after every other agent has returned, so nothing else loads the machine during its measurements.
 4. If the user says "run them all in parallel", do it, and say that shared test databases and benchmark noise may affect the results of the skills in the queue.
-5. After **each** agent returns, compare the tree with the snapshot. If the working tree changed, stop. Tell the user which agent and which files. Do not continue and do not undo anything yourself.
+5. After **each** agent returns, save its report to the run directory and tick it in the ledger. Then compare the tree with the snapshot. If the working tree changed, stop. Tell the user which agent and which files. Do not continue and do not undo anything yourself.
 6. Do not edit any file in this step.
 
 If an agent fails or returns no report, retry it once. If it fails again, record "<skill>: failed, not reviewed" and carry on.
@@ -119,17 +120,18 @@ If the user asked for review only, stop here.
 
 Read the "Apply" section of [references/merge-and-apply.md](references/merge-and-apply.md).
 
-1. Apply only the "Apply" group. Ask the user once, with all "Needs decision" items together, and apply those the user approves.
+1. Apply the "Apply" group without asking. Do not stop between batches to report or to offer to go on. Put status notes in the same message as the next action.
 2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `harness-code-review`, `performance-analysis`, `test-analysis`, and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The linter runs on the final result.
 3. Before each batch, take a checkpoint. Spawn a `code-developer` agent (in Claude Code, `model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
 4. Never apply anything in the "Needs human check" group.
-5. Never commit.
+5. After the last batch, ask the user once, with every "Needs decision" item together (the ones from Step 5 and the ones the code-developers reported). Apply the approved ones as a last batch, with a checkpoint.
+6. Never commit.
 
 ### Step 7: Verify and report
 
 1. Run the project's full test command and its linter once on the final tree.
 2. If a check fails, find which batch caused it from the checkpoints. Report it. Do not start another review loop.
-3. Give the final report: what each skill found, what was applied, reverted, and skipped, what needs the user, and what the final checks showed.
+3. Give the final report in the format from the reference. Lead with what needs the user (decisions and human checks), then what was applied, reverted, and skipped, then what the final checks showed.
 
 ## Common rationalizations
 
@@ -161,13 +163,14 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 ## Verification
 
 - [ ] The scope, the files dropped, and the intent are stated.
+- [ ] The run directory holds the ledger, every agent's report, and every batch patch. The ledger matches the final report.
 - [ ] The plan names every skill that ran, why, and every skill that did not run, and why.
 - [ ] Every review ran in its own `code-reviewer` agent on `opus`, with the scope given as a file list.
 - [ ] The parallel group started in one message. The queue ran one agent at a time. `performance-analysis` ran last.
 - [ ] The tree was compared with the snapshot after each review agent.
 - [ ] Every finding was checked against the real file before it was merged or applied.
 - [ ] De-duplicated findings list every skill that reported them. Conflicts are listed with the choice made.
-- [ ] Only verified, no-decision findings were applied without asking. "Needs decision" items were asked once.
+- [ ] Only verified, no-decision findings were applied without asking. "Needs decision" items were asked once, after the last batch.
 - [ ] Each batch had a checkpoint, and the tests ran after it.
 - [ ] The batches ran in the fixed order, with `static-analysis` last.
 - [ ] The final tests and linter ran on the final tree.

@@ -40,7 +40,7 @@ This skill is read-only. Report findings. Do not change code unless the user ask
 3. Review the whole codebase only when the user asks for a full review.
 4. Skip tests, docs, generated code, and one-off scripts. Say what you skipped.
 5. Detect the language and framework (see Language references). Read the matching reference now.
-6. Learn what is hot and how big the data is. Look in `CLAUDE.md`, README, docs, existing benchmarks, and load or performance tests. If you cannot find it, ask the user once for: the largest table or collection sizes, the request rate of the changed paths, and any latency target. If the user does not know, say which sizes you assumed.
+6. Learn what is hot and how big the data is. Look in `CLAUDE.md`, README, docs, existing benchmarks, and load or performance tests. If you cannot find it, do not stop to ask. Assume realistic values for the largest table or collection sizes, the request rate of the changed paths, and any latency target. Mark each one "assumed", and put the question under "Needs human check".
 
 A path is **hot** when it runs on a user request, in a loop over data, in a frequent job, or at startup of every process. A path is **cold** when it runs once, by hand, or on a tiny input.
 
@@ -145,7 +145,7 @@ Perf 1: <Category>: `<file>:<line>`
 - Confirm with: <the command that shows the improvement>
 
 ### Needs human check
-- `<file>:<line>`: <what you could not verify and the exact question, for example "rows in orders?">
+- `<file>:<line>`: <what you could not verify and the exact question, for example "rows in orders?">. Looked in: <files, commands, or tools you checked>
 
 ### Linter rules to consider
 - <rule or tool the project could enable, and where it would have helped>. The user decides.

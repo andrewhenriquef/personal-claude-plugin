@@ -47,8 +47,8 @@ Before you change anything:
 
 1. Fetch the release notes or changelog between the two versions, from the project's repository or the registry.
 2. Search them for `BREAKING`, `DEPRECATED`, `MIGRATION`, `removed`, `dropped`. Show every flagged line verbatim.
-3. Confirm with the user. If any line is flagged, ask a second time with the lines shown.
-4. If the package has no direct import (purely transitive), say so, and one confirmation is enough.
+3. If any line is flagged, the bump needs a yes (see section 5). Show the flagged lines in that question.
+4. If the package has no direct import (purely transitive), say so. It lowers the risk of a flagged line.
 
 **Fast track**, only when all are true:
 
@@ -57,21 +57,27 @@ Before you change anything:
 - No advisory on it is high or critical.
 - The user did not ask for the full process.
 
-Fast track skips the changelog read and uses one confirmation. It never skips the baseline, the lockfile diff check, the scanner re-run, or the tests.
+Fast track skips the changelog read. It never skips the baseline, the lockfile diff check, the scanner re-run, or the tests.
 
 **Always standard track:** a high or critical advisory on a package with a request-path import, a major bump, or any change in a package that handles authentication, cryptography, parsing of untrusted input, or networking.
 
-## 5. Confirm before you edit
+## 5. When to wait for a yes
 
-Say, in a few lines:
+The user's request to update the package or fix the advisory is the go-ahead. Do not ask again for what the user already asked.
+
+| Case | What to do |
+|---|---|
+| Patch or minor, no changelog flag, no runtime bump | Apply. State the summary below in the same message as the command, and do not wait |
+| Changelog flags, a major bump, a pre-1.0 minor, or a runtime bump | Stop for this package. Ask once, with the summary and the flagged lines. Wait for a clear yes. A vague reply is not a yes |
+| Run by an agent (the prompt says the batch is pre-approved, for example a `code-developer` from `complete-code-review`) | Never wait. An agent cannot ask the user. Report every package from the row above as "needs decision" with the summary, and go on with the rest |
+
+The summary, in a few lines:
 
 - The package, from version, to version, and the bump class.
 - Which advisories it fixes.
 - The exposure buckets and the import count.
 - The changelog flags, if any.
 - The exact command you will run.
-
-Wait for a clear yes. A vague reply is not a yes.
 
 ## 6. Apply
 

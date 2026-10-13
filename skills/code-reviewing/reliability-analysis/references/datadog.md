@@ -40,7 +40,7 @@ Report a gap only with a scenario, as `reliability-checks.md` says. These questi
 
 ## Datadog data as evidence
 
-If the session has Datadog MCP tools (the Datadog plugin for Claude Code, `datadog@claude-plugins-official`, signs in with OAuth), use them to answer questions that the repo cannot answer. If the tools are not there, do not ask the user to install anything. Say "No Datadog data" in the report, and ask the user once for the numbers you need.
+If the session has Datadog MCP tools (the Datadog plugin for Claude Code, `datadog@claude-plugins-official`, signs in with OAuth), use them to answer questions that the repo cannot answer. If the tools are not there, do not ask the user to install anything. Say "No Datadog data" in the report, and list the numbers you need under "Needs human check". Do not stop to ask.
 
 The Datadog MCP Server groups tools into toolsets. The `core` toolset is on by default. The others (`apm`, `error-tracking`, `alerting`, `metrics-governance`) need to be enabled by the user.
 
