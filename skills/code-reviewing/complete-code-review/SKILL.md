@@ -1,6 +1,6 @@
 ---
 name: complete-code-review
-description: Run the right code-review skills on a change, each in its own Opus agent at high effort, then merge the reports and apply the fixes. Picks the skills from what changed (security-analysis, harness-code-review, dependency-analysis, data-and-migration-analysis, reliability-analysis, test-analysis, performance-analysis, static-analysis), runs them in safe waves, validates and de-duplicates the findings, and applies the verified ones in a safe order with a checkpoint for each batch. Default scope is the current branch against main plus the uncommitted work. Named files narrow it. "Whole project" widens it. Use when the user asks for a full code review, "review my changes", "review this branch", "run all the reviews", or "review the whole project". Say "review only" to stop before any change is made.
+description: Run the right code-review skills on a change, each in its own Opus agent at high effort, then merge the reports and apply the fixes. Picks the skills from what changed (security-analysis, harness-code-review, dependency-analysis, data-and-migration-analysis, reliability-analysis, test-analysis, performance-analysis, tech-debt-analysis, static-analysis), runs them in safe waves, validates and de-duplicates the findings, and applies the verified ones in a safe order with a checkpoint for each batch. Default scope is the current branch against main plus the uncommitted work. Named files narrow it. "Whole project" widens it. Use when the user asks for a full code review, "review my changes", "review this branch", "run all the reviews", or "review the whole project". Say "review only" to stop before any change is made.
 ---
 
 # Complete Code Review
@@ -57,6 +57,7 @@ Read [references/routing.md](references/routing.md). It maps each file class and
    - **Parallel group:** skills that run no project code. They read files, run read-only scanners, and read packages.
    - **Queue:** skills that run the project's tests, tools, benchmarks, or local database. They run one at a time.
    - **Apply phase:** `static-analysis` (and `code-simplify`, only on request). They change code, so they do not run in Step 2. They run in Step 6.
+   - `tech-debt-analysis` reviews in the parallel group (it reads only), and its "fix now" items are applied in Step 6.
 5. Show the user a short plan, then go on without waiting:
 
 ```
@@ -113,6 +114,7 @@ Present the merged report (format in the reference). Then classify every finding
 - **Needs decision:** the fix changes behavior, a public API, a schema, or data, or it is a major version bump, or the skill says the change carries a trade-off.
 - **Needs human check:** unverified, or the reviewer could not confirm it.
 - **Lead:** a note for a skill that did not run.
+- **Debt backlog:** an item from `tech-debt-analysis` in Repo mode (whole-project review). It ranks debt and carries no patch. It is reported, never applied. Items from Change mode are classed like any other finding: a "fix now" item is **Apply**, the rest are **Lead** or **Needs human check**.
 
 If the user asked for review only, stop here.
 
@@ -121,9 +123,9 @@ If the user asked for review only, stop here.
 Read the "Apply" section of [references/merge-and-apply.md](references/merge-and-apply.md).
 
 1. Apply the "Apply" group without asking. Do not stop between batches to report or to offer to go on. Put status notes in the same message as the next action.
-2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `harness-code-review`, `performance-analysis`, `test-analysis`, and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The linter runs on the final result.
+2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `harness-code-review`, `performance-analysis`, `test-analysis`, `tech-debt-analysis` (only its "fix now" items), and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The small clean-up of windows comes after the real fixes, so it works on the settled code. The linter runs on the final result.
 3. Before each batch, take a checkpoint. Spawn a `code-developer` agent (in Claude Code, `model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
-4. Never apply anything in the "Needs human check" group.
+4. Never apply anything in the "Needs human check" group or the "Debt backlog". From `tech-debt-analysis`, apply only the "fix now" items, as one batch, and tell the user to commit that clean-up apart from the change.
 5. After the last batch, ask the user once, with every "Needs decision" item together (the ones from Step 5 and the ones the code-developers reported). Apply the approved ones as a last batch, with a checkpoint.
 6. Never commit.
 
@@ -158,6 +160,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 - A code-developer disabled a lint rule, skipped a test, or added a scanner ignore entry.
 - A fix for a major version bump, a schema change, or a data change was applied without the user's approval.
 - The report hides a conflict between two skills.
+- `tech-debt-analysis` wrote `docs/tech-debt.md` during the run, or a backlog item, or a window that is not "fix now", was applied.
 - Anything was committed.
 
 ## Verification
@@ -172,6 +175,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 - [ ] De-duplicated findings list every skill that reported them. Conflicts are listed with the choice made.
 - [ ] Only verified, no-decision findings were applied without asking. "Needs decision" items were asked once, after the last batch.
 - [ ] Each batch had a checkpoint, and the tests ran after it.
-- [ ] The batches ran in the fixed order, with `static-analysis` last.
+- [ ] The batches ran in the fixed order, with `tech-debt-analysis` before and `static-analysis` last.
 - [ ] The final tests and linter ran on the final tree.
+- [ ] `tech-debt-analysis` ran in Change mode for a change and in Repo mode (report only) for a whole-project review. Only its "fix now" items were applied. No backlog item was applied.
 - [ ] Nothing was committed.

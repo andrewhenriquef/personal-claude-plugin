@@ -107,7 +107,8 @@ Resolve with this priority, highest first:
 4. `harness-code-review`
 5. `test-analysis`
 6. `performance-analysis`
-7. `static-analysis` and `code-simplify`
+7. `tech-debt-analysis`, `static-analysis`, and `code-simplify`
+
 
 Rules:
 
@@ -121,6 +122,10 @@ Each review report has a "Notes for other reviews" section.
 
 - The note belongs to a skill that ran: find that skill's finding at the same place. If one exists, it is a duplicate. If none exists, add it as a lead for the user, because a note is not a verified finding.
 - The note belongs to a skill that did not run: list it under "Leads", and offer to run that skill on the file.
+
+### Debt items
+
+Items from `tech-debt-analysis` in Repo mode use priority P1 to P3, not severity. Keep them out of the severity ranking, in their own section. Items from Change mode carry a severity (introduced MEDIUM, inherited LOW) and rank like any finding. If a debt item sits at the same place (within 3 lines) as a finding from another skill (a swallowed error that `reliability-analysis` also reported, a skipped test that `test-analysis` reported), record `reported by: tech-debt-analysis` on that finding and keep the debt item only for its hotspot or neighbourhood context.
 
 ### Rank
 
@@ -150,6 +155,9 @@ Needs you: <N> decisions, <N> human checks (listed below), or "nothing".
 ### Needs human check
 - <id or source> `<file>:<line>`: <the exact question, or "unverified: <reason>">. Looked in: <files, commands, or tools>
 
+### Debt backlog (full review only)
+- <id> [P1 | P2 | P3] `<file>:<line>`: <what, and the cost in one line>. Effort: <S | M | L>. Next skill: <name>
+
 ### Leads
 - <note> `<file>:<line>`: <skill that would cover it, and whether it ran>
 
@@ -165,6 +173,7 @@ Findings: <N> (HIGH <n>, MEDIUM <n>, LOW <n>). Merged duplicates: <n>. Unverifie
 | Needs decision | The fix changes behavior, a public API, a schema, stored data, or a permission rule. Or it is a major version bump. Or the skill's "Risk of the change" names a trade-off. Or two findings conflict with no fix for both | Ask the user once, with all such items together |
 | Needs human check | Unverified, or the reviewer could not confirm | Never applied |
 | Lead | A note for a skill that did not run | Offer the skill |
+| Debt backlog | Any item from `tech-debt-analysis` in Repo mode | Reported. Never applied. Never needs a decision |
 
 A fix that adds or edits a migration for a table that already shipped is always "needs decision". A fix that edits data (a backfill) is always "needs decision". A security fix that changes who can do what is always "needs decision".
 
@@ -183,7 +192,8 @@ One batch per review skill, one batch at a time:
 5. `harness-code-review`
 6. `performance-analysis`
 7. `test-analysis` (tests cover the final code)
-8. `static-analysis` (runs on the final result)
+8. `tech-debt-analysis` (only its "fix now" items, on the settled code)
+9. `static-analysis` (runs on the final result)
 
 Skip a batch that has nothing to apply. If a later batch's finding sits on code that an earlier batch changed, the code-developer checks that the finding is still true. It skips the finding if not.
 
@@ -256,9 +266,14 @@ Skipped (<N>):
 Leads (<N>):
 - <note>: <skill that would cover it>
 
+Debt backlog (<N>, full review only): top 5 by priority, then "full list in the report".
+- <id> [P1 | P2 | P3] `<file>:<line>`: <what>. Next skill: <name>
+
 Final checks: tests <result>, lint <result>.
 Files changed: <list>. Nothing is committed.
 Run directory: <path> (ledger, reports, and the patch of each batch).
+Full review only: tech debt doc at <$run/report-tech-debt-analysis.md>. Run `tech-debt-analysis` to write it to `docs/tech-debt.md`.
+The "tech-debt-analysis" batch is a clean-up. Commit it apart from the change.
 ```
 
 Leave out a section that is empty. When nothing needs the user, the first line says so: "Nothing needs your decision."

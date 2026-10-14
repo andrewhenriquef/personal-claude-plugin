@@ -33,12 +33,15 @@ Rules:
 | `reliability-analysis` | queue | The content signal for failure handling below matches, or a job, a consumer, a webhook, or a concurrency primitive is in scope | Pure data structures, pure functions, config only |
 | `test-analysis` | queue | A test file is in scope, or production code with behavior changed (the tests that protect it are part of the review) | No test and no production code in scope |
 | `performance-analysis` | queue, last | The content signal for hot paths below matches | Config only, one-off scripts, docs |
+| `tech-debt-analysis` | parallel, then apply phase for its "fix now" items | Any production code or test file in scope (Change mode), and in a full review (Repo mode, report only). It reads git history and runs only read-only analysis tools | Only docs, config, or dependency manifests. A repository with no git history |
 | `static-analysis` | apply phase | The project has a linter for the language of a code file in scope (`.golangci.yml`, `.rubocop.yml`, or the linter is in the manifest) | No linter configured. Say so, and do not install one |
 | `code-simplify` | apply phase, on request | Only when the user asks for simplification or clean-up | Default |
 
 `static-analysis` does not review. It fixes. It runs in the apply phase (Step 6), last, not in Step 2. List it in the plan with its apply-phase position.
 
 `harness-code-review` overlaps other lenses on purpose (in Cursor, `security-review` covers ground that `security-analysis` covers). The merge records the agreement, and agreement raises confidence. In `complete-code-review` it runs review only: never `--fix`, never its simplify step.
+
+`tech-debt-analysis` runs in **Change mode** for a default or named-file scope. It finds the windows the change adds and the small ones in the touched files, and it lists "fix now" items. Those are applied in the apply phase, after the real fixes and before `static-analysis`. Everything else it reports is a lead or a human check. In a **full review** it runs in Repo mode, report only (the agent writes no file): its items go to the "Debt backlog" and none is applied.
 
 `code-simplify` also changes code. Leave it out unless the user asks. If the review finds heavy design smells, mention it in the report as a lead.
 
@@ -71,6 +74,7 @@ If the `grep` finds nothing for all three, and the change is production code, th
 - `dependency-analysis` runs in Audit mode.
 - Run all the skills that the repository supports, based on what exists in it (a `db/migrate` folder means the data skill runs, a manifest means the dependency skill runs).
 - Still use the same groups, order, and apply rules.
+- `tech-debt-analysis` runs in Repo mode, report only, and its items are not applied.
 - Say in the plan that this spawns one Opus agent per skill, each reading the whole repository, and that it takes a long time.
 - In a full review, apply only findings with severity HIGH or MEDIUM, unless the user asks for more. A full review can produce hundreds of LOW items. Report them. Do not apply them.
 

@@ -39,6 +39,7 @@ Notes:
 - For `reliability-analysis`, add: "Datadog tools may be available in this session. Use them read-only, as the skill says."
 - For `test-analysis`, add the intent in more detail if you have it. The skill uses it to judge whether tests check the right behavior.
 - For `data-and-migration-analysis`, add anything the user said about the database engine, the table sizes, and the deploy order. Otherwise the skill marks them as assumed, and its findings are weaker.
+- For `tech-debt-analysis`, add the mode. Default or named-file scope: "Mode: Change. Report only." with the file list. Full review: "Mode: Repo. Report only. Write no file, `docs/tech-debt.md` included. Return the full content of the doc as your report." with the scope "full". Ask for the "fix now" items with the exact edit (file, lines, and what to delete).
 - If the skill needs a fact that you do not have, tell the agent to put the question under "Needs human check". Do not let it stall.
 
 ## Fix prompt
@@ -57,6 +58,8 @@ Project commands:
 A checkpoint was taken. Do not use git stash, restore, checkout, reset, or clean. Do not commit.
 Return the batch report in the format from your instructions.
 ```
+
+For the `tech-debt-analysis` batch, use the fix prompt above with only the "fix now" items. Add: "Each is a deletion or a one-line fix that must not change behavior. Before each, search for references again. If one exists, skip the item and say why. Do not touch any other line of the file."
 
 For the `static-analysis` batch:
 
