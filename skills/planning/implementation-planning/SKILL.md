@@ -196,3 +196,7 @@ Once every requested story has its Step 4-6 content, check it against every othe
 - **Security/permissions** — no two stories applying different auth/authz rules to the same resource.
 
 Fix directly in the files. If a fix touches a diagram, regenerate it via `design-doc-mermaid` rather than hand-editing the Mermaid source. If a fix requires a real technical judgment call, route it through `interview` (see above) rather than guessing. Stop once one pass finds nothing left to fix.
+
+### Next step
+
+When the plan is done, offer `tdd-development` to build a story test-first. Its Gherkin scenarios become the test list, and the interfaces and API contracts in `## Implementation Details` become the seams to test through.

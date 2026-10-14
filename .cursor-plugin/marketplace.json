@@ -10,7 +10,7 @@
     {
       "name": "andrew-skills",
       "source": "./",
-      "description": "Andrew's skills for development with Claude"
+      "description": "Andrew's skills for development with Claude: planning, TDD, code review, debugging, CI pipelines, and tech debt analysis"
     }
   ]
 }

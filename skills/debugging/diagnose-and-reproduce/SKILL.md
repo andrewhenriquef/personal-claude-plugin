@@ -29,7 +29,7 @@ Skill calls below are written as Claude Code `Skill(skill: ...)` calls. The plug
 
 ## When NOT to use
 
-- The user already knows the cause and wants the fix. Write the test and the fix directly (test first).
+- The user already knows the cause and wants the fix. Use `tdd-development`: the failing test comes first, then the fix.
 - The user wants a code review of a change. Use `complete-code-review`.
 - The user wants a feature planned. Use `feature-planning`.
 - The user asks "what could fail in this diff". Use `reliability-analysis`.
@@ -106,7 +106,7 @@ Run `Skill(skill: "propose-solutions")`. It writes 2 to 3 fix options with trade
 1. Check the tree against the snapshot. Search for the probe tag that `confirm-root-cause` recorded in section 4 (`git grep -n --untracked -I "DEBUG-xxxx" -- . ':!docs/<slug>/'`; the search leaves out `docs/<slug>/`, where the tag is recorded). If a probe is left, remove it, and say so in the report.
 2. Ask the user which option to take with `AskUserQuestion`, in one question. The tool allows 4 options. Give one option per solution (2 to 3), the recommended one first, and add "I need more evidence" when there is room and no option already covers it. "Stop here" is the automatic "Other" answer.
 3. Write the choice and the handoff block ([references/diagnosis-template.md](references/diagnosis-template.md), section "Handoff") into `diagnosis.md`.
-4. Report: the slug, the path of `diagnosis.md`, the reproduction command, the confidence label, and the chosen option. Say that the failing test is in the working tree and not committed. Say what comes next (the fix, test first). Stop. Do not start the fix unless the user asks.
+4. Report: the slug, the path of `diagnosis.md`, the reproduction command, the confidence label, and the chosen option. Say that the failing test is in the working tree and not committed. Say what comes next: the fix, test first, with `tdd-development`, which takes the failing test in the working tree as its red. Stop. Do not start the fix unless the user asks.
 
 ## Stop path: the bug does not reproduce
 

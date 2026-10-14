@@ -27,7 +27,7 @@ This skill does not write the fix. It names what would change, and how to prove 
 ## When NOT to use
 
 - There is no root cause. Go back to `confirm-root-cause`. If the user wants to go on anyway, offer only the "collect more evidence" option and containment, and label them.
-- The user already chose a fix. Write the test and the fix.
+- The user already chose a fix. Use `tdd-development`: it takes the failing test as its red and writes the fix test first.
 - The user wants a design for a feature. Use `implementation-planning`.
 
 ## Process
