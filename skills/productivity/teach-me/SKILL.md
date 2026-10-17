@@ -1,6 +1,6 @@
 ---
 name: teach-me
-description: Create a teaching presentation or explanation as one HTML page, built from videos, official documentation, and articles, with the text written in plain language. Detects the language of the request and applies that language's plain-language standard (ASD-STE100 for English, Linguagem Simples for Brazilian Portuguese, and others). Use when the user asks to study a topic, "explain from the basics", build animated slides, or turn sources (links, videos, summaries) into learning material. The material is written in the language of the request.
+description: Create a teaching presentation or explanation as one HTML page, built from videos, official documentation, and articles, with the text written in plain language. Flows, drawings, and diagrams are animated step by step, the dark theme uses the spectrum-ui visual style, and every explanation ends with a quiz. Detects the language of the request and applies that language's plain-language standard (ASD-STE100 for English, Linguagem Simples for Brazilian Portuguese, and others). Use when the user asks to study a topic, "explain from the basics", build animated slides, or turn sources (links, videos, summaries) into learning material. The material is written in the language of the request.
 ---
 
 # Teach Me
@@ -56,7 +56,8 @@ Use this order, from the simplest to the most advanced:
 5. How it works inside (only what helps the reader use it).
 6. The subject applied to the reader's context (tools, real cases).
 7. Practice: step-by-step flow, good practices, and traps.
-8. Sources.
+8. Quiz: always present (see Step 6).
+9. Sources.
 
 Each slide holds one idea. Group the slides into parts and give each part a real name (for example "Basics", "Tools", "Practice"). Do not number parts only for decoration.
 
@@ -102,11 +103,12 @@ Each slide holds one idea. Group the slides into parts and give each part a real
 Deliver one HTML page, with no external files except allowed fonts and libraries.
 
 - **Navigation:** keyboard arrows, buttons, dots, and swipe on mobile. Show the slide number and a progress bar.
-- **Animations:** use CSS and SVG, and respect `prefers-reduced-motion`. The page must be complete on load. The animation only shows how the idea works. It never hides the text.
-- **Diagrams:** draw in SVG to show the real mechanism (for example, one folder linked to several agents). Give each thing a color with a function. Example: when you explain Git worktrees, each worktree gets its own color, like the lines of a subway map.
+- **Animations:** every flow, drawing, and diagram example is animated. Do not leave one static. Animate the sequence of the mechanism: a data packet moving along an arrow, steps lighting up in order, a box that appears when its step starts. Each animated example has play, pause, and replay controls, and a step control to move one step at a time. Use CSS and SVG, and respect `prefers-reduced-motion`: with reduced motion on, show the final state with no movement and keep the step control. The page must be complete on load. The animation only shows how the idea works. It never hides the text.
+- **Diagrams:** draw in SVG to show the real mechanism (for example, one folder linked to several agents). Give each thing a color with a function. Example: when you explain Git worktrees, each worktree gets its own color, like the lines of a subway map. Animate them as described above.
+- **Quiz:** every explanation has a quiz. Do not skip it, and do not wait for the user to ask. Put it after the practice part and before the sources. Use 3 to 6 questions, mostly multiple choice, that test application and not memorization ("what happens if…", "which command do you use to…"). Each answer gives instant feedback: say why the right option is right and why a wrong option is wrong, in plain language, and point to the slide that explains it. Show the score at the end, and allow a retry. For a long material (more than 3 parts), add a short quiz of 1 to 2 questions at the end of each part. Take every question and answer from the content of the page and its sources. Never test a fact the page does not teach. The quiz works with keyboard and touch, and shows the right answer in text, not only by color.
 - **Interactive terminal:** for commands, use tabs and an output that appears line by line. Mark outputs you wrote from memory.
 - **Tables:** use them to compare tools, always with the same criteria in the rows.
-- **Themes:** define colors as variables and design both the light and the dark theme.
+- **Themes:** define colors as variables and design both the light and the dark theme. The dark theme follows the visual style of **spectrum-ui**: its dark surfaces, text contrast, accent colors, spacing, and component look. Read the official spectrum-ui documentation in Step 3 and copy its real tokens and component patterns. Do not write token names or color values from memory. If you cannot read the documentation, say so in the delivery, build the dark theme with plain CSS variables, and mark it as not following spectrum-ui. Check that text keeps enough contrast in the dark theme.
 - **Mobile:** the page must work at about 400 px wide, with no horizontal scroll. Tables and code scroll inside their own box.
 - **Images:** do not depend on external images. Draw diagrams in SVG.
 - **Typography:** a pair of fonts with personality (headings and text) and a monospace font for code.
@@ -122,13 +124,16 @@ Before you deliver, check:
 - [ ] Third-party summaries are marked as not verified.
 - [ ] The JavaScript syntax is correct.
 - [ ] The page works on a small screen and in both themes.
+- [ ] The dark theme follows the spectrum-ui documentation you read, or the delivery says it does not.
+- [ ] Every flow, drawing, and diagram is animated, has play, pause, replay, and step controls, and shows a static final state with reduced motion.
+- [ ] The quiz exists, each question is answered by the page content, and each answer has feedback.
 - [ ] The links in the sources section open the right pages.
 
 ### Step 8: Deliver
 
 - Say in one or two sentences what is ready.
 - List the limits: what you could not read, what you did not check, what you wrote from memory.
-- Suggest a next step, if one is clear (for example, a quiz at the end).
+- Suggest a next step, if one is clear (for example, a deeper part on one topic, or a harder quiz).
 - End with the list of sources.
 
 ## Honesty rules
@@ -140,7 +145,6 @@ Before you deliver, check:
 
 ## Optional ideas
 
-- **Short quiz** at the end of each part, covering application and not memorization.
 - **Glossary tooltip:** the term shows its definition on hover or tap.
 - **Side-by-side translation:** show the code or command and, next to it, what it does in one sentence.
 - **One analogy per concept,** without repeating the same analogy in different parts.

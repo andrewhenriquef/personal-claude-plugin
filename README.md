@@ -113,7 +113,7 @@ Small tools for thinking and writing. They are independent. `interview` is the b
 | [understand-the-intent](skills/productivity/understand-the-intent/SKILL.md) | Interviews you until shared understanding, then writes `docs/<slug>/intent.md`. |
 | [product-interrogatory](skills/productivity/product-interrogatory/SKILL.md) | Runs a four-lens discovery interrogation: product manager, designer, QA, technical. |
 | [grammar-review](skills/productivity/grammar-review/SKILL.md) | Corrects grammar, spelling, and clarity in any language. |
-| [teach-me](skills/productivity/teach-me/SKILL.md) | Turns a topic and its sources (videos, official docs, articles) into one teaching HTML page with animated SVG diagrams, written in plain language (ASD-STE100, Linguagem Simples, and others), in the language of the request. |
+| [teach-me](skills/productivity/teach-me/SKILL.md) | Turns a topic and its sources (videos, official docs, articles) into one teaching HTML page with animated SVG diagrams, a spectrum-ui dark theme, and a closing quiz, written in plain language (ASD-STE100, Linguagem Simples, and others), in the language of the request. |
 
 ### Diagrams
 
