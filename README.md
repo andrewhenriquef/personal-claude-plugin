@@ -82,12 +82,12 @@ From a bug report to a proven cause, without fixing it. The skills form a pipeli
 
 ### Walkthroughs
 
-Understanding code without changing it. Each skill traces the real code with `file:line`, draws Mermaid sequence diagrams, and writes a document in your language. No orchestrator: use the one you need. `flow-diff` reuses the tracing rules of `flow-as-is`.
+Understanding code without changing it. Each skill traces the real code with `file:line`, draws Mermaid sequence diagrams (one per scenario, with no `alt` blocks), and writes a document in your language. No orchestrator: use the one you need. `flow-diff` reuses the tracing rules of `flow-as-is`.
 
 | Skill | What it does |
 |---|---|
-| [flow-as-is](skills/walkthroughs/flow-as-is/SKILL.md) | Explains how an existing flow works, from the entry point to the last side effect. Writes `docs/<flow-name>-flow.md`. |
-| [flow-diff](skills/walkthroughs/flow-diff/SKILL.md) | Explains what a branch or PR changes, flow by flow, with AS IS and TO BE diagrams. Writes `docs/<change-name>-changes.md`. |
+| [flow-as-is](skills/walkthroughs/flow-as-is/SKILL.md) | Explains how an existing flow works, from the entry point to the last side effect, with an overview diagram and one diagram for each scenario of each part (the main path, each branch, each error path). Writes `docs/<flow-name>-flow.md`. |
+| [flow-diff](skills/walkthroughs/flow-diff/SKILL.md) | Explains what a branch or PR changes, flow by flow, with an AS IS and a TO BE diagram for each scenario. Writes `docs/<change-name>-changes.md`. |
 
 ### Continuous integration
 
