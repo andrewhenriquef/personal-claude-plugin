@@ -7,7 +7,7 @@ description: >
   the focused tests. For the `static-analysis` batch it runs that skill, and for
   a `dependency-analysis` batch it runs that skill in Fix mode. Not meant to be
   invoked directly. For a review, use the `complete-code-review` skill.
-model: opus
+model: sonnet
 effort: high
 color: orange
 ---

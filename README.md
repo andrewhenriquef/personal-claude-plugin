@@ -129,8 +129,8 @@ Small tools for thinking and writing. They are independent. `interview` is the b
 | [tech-lead-reviewer](agents/tech-lead-reviewer.md) | Review a PRD from a tech-lead lens: feasibility risk, missing non-functional requirements, integration risk. Read-only, findings only. |
 | [qa-reviewer](agents/qa-reviewer.md) | Review a PRD from a left-shift QA lens: testability, missing edge/negative paths, non-functional test coverage. Read-only, findings only. |
 | [senior-dev](agents/senior-dev.md) | Spawned by `implementation-planning` (one per story, in parallel, when a tag has multiple stories): explores the codebase, generates diagrams, writes technical details back into one `user_story_<N>.md`. Read/write. |
-| [code-reviewer](agents/code-reviewer.md) | Spawned by `complete-code-review`, one per review skill. Runs exactly one code-reviewing skill on the scope it is given and returns that skill's report. Opus, high effort. Read-only. |
-| [code-developer](agents/code-developer.md) | Spawned by `complete-code-review` in its apply phase, one batch at a time. Applies verified findings from one review skill with the smallest change, then runs the focused tests. Never weakens a lint rule or a test. Opus, high effort. |
+| [code-reviewer](agents/code-reviewer.md) | Spawned by `complete-code-review`, one per review skill. Runs exactly one code-reviewing skill on the scope it is given and returns that skill's report. Opus, low effort. Read-only. |
+| [code-developer](agents/code-developer.md) | Spawned by `complete-code-review` in its apply phase, one batch at a time. Applies verified findings from one review skill with the smallest change, then runs the focused tests. Never weakens a lint rule or a test. Sonnet, high effort. |
 | [product-designer](agents/product-designer.md) | Runs discovery by interviewing the user about problem framing, flows, and persona, focused on client/API-consumer experience, not frontend UI. Hands off persona/flow/problem-statement artifacts. Read/write. |
 
 ## MCP servers

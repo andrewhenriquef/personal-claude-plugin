@@ -1,6 +1,6 @@
 ---
 name: complete-code-review
-description: Run the right code-review skills on a change, each in its own Opus agent at high effort, then merge the reports and apply the fixes. Picks the skills from what changed (security-analysis, harness-code-review, dependency-analysis, data-and-migration-analysis, reliability-analysis, test-analysis, performance-analysis, tech-debt-analysis, static-analysis), runs them in safe waves, validates and de-duplicates the findings, and applies the verified ones in a safe order with a checkpoint for each batch. Default scope is the current branch against main plus the uncommitted work. Named files narrow it. "Whole project" widens it. Use when the user asks for a full code review, "review my changes", "review this branch", "run all the reviews", or "review the whole project". Say "review only" to stop before any change is made.
+description: Run the right code-review skills on a change, each in its own Opus agent at low effort, then merge the reports and apply the fixes. Picks the skills from what changed (security-analysis, harness-code-review, dependency-analysis, data-and-migration-analysis, reliability-analysis, test-analysis, performance-analysis, tech-debt-analysis, static-analysis), runs them in safe waves, validates and de-duplicates the findings, and applies the verified ones in a safe order with a checkpoint for each batch. Default scope is the current branch against main plus the uncommitted work. Named files narrow it. "Whole project" widens it. Use when the user asks for a full code review, "review my changes", "review this branch", "run all the reviews", or "review the whole project". Say "review only" to stop before any change is made.
 ---
 
 # Complete Code Review
@@ -78,7 +78,7 @@ Apply: <yes | no (review only)>
 
 Read [references/agent-prompts.md](references/agent-prompts.md) for the prompt of each agent.
 
-1. Spawn each review in its own agent: agent type `code-reviewer`. In Claude Code, set `model` to `opus`; the agent definition also sets effort to high, and the agent type is listed as `andrew-skills:code-reviewer` when the plugin is installed. In Cursor, spawn the `code-reviewer` subagent through the Task tool; its model comes from the Cursor agent definition. Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands.
+1. Spawn each review in its own agent: agent type `code-reviewer`. In Claude Code, set `model` to `opus`; the agent definition also sets effort to low, and the agent type is listed as `andrew-skills:code-reviewer` when the plugin is installed. In Cursor, spawn the `code-reviewer` subagent through the Task tool; its model comes from the Cursor agent definition. Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands.
 2. Start the whole parallel group in **one message**, so the agents run at the same time. You may start the first queued agent in the same message.
 3. Start each next queued agent when the previous queued agent returns. Run `performance-analysis` last, after every other agent has returned, so nothing else loads the machine during its measurements.
 4. If the user says "run them all in parallel", do it, and say that shared test databases and benchmark noise may affect the results of the skills in the queue.
@@ -124,7 +124,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 
 1. Apply the "Apply" group without asking. Do not stop between batches to report or to offer to go on. Put status notes in the same message as the next action.
 2. Apply in batches, one review skill per batch, one batch at a time, in this order: `dependency-analysis`, `data-and-migration-analysis`, `security-analysis`, `reliability-analysis`, `harness-code-review`, `performance-analysis`, `test-analysis`, `tech-debt-analysis` (only its "fix now" items), and last `static-analysis`. A dependency change moves the lockfile. Code fixes then build on it. Tests cover the final code. The small clean-up of windows comes after the real fixes, so it works on the settled code. The linter runs on the final result.
-3. Before each batch, take a checkpoint. Spawn a `code-developer` agent (in Claude Code, `model` `opus`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
+3. Before each batch, take a checkpoint. Spawn a `code-developer` agent (in Claude Code, `model` `sonnet`) with the batch. After it returns, run the project's tests for the files it changed. If the tests fail, undo that batch with its reverse patch (never with `git restore`, `git checkout`, `git stash pop`, or `git reset`), record the batch as "reverted", and carry on with the next one.
 4. Never apply anything in the "Needs human check" group or the "Debt backlog". From `tech-debt-analysis`, apply only the "fix now" items, as one batch, and tell the user to commit that clean-up apart from the change.
 5. After the last batch, ask the user once, with every "Needs decision" item together (the ones from Step 5 and the ones the code-developers reported). Apply the approved ones as a last batch, with a checkpoint.
 6. Never commit.
@@ -139,7 +139,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 
 | Rationalization | Reality |
 |---|---|
-| "I will run every skill every time." | Each agent costs an Opus session at high effort. Run the skills that the change needs, and say why you skipped the rest. |
+| "I will run every skill every time." | Each agent costs an Opus session. Run the skills that the change needs, and say why you skipped the rest. |
 | "The agents are read-only, so I do not need to check the tree." | A skill can have a bug. The snapshot check is cheap and it catches a reviewer that edited code. |
 | "Run all the agents at once, it is faster." | Test runs share a database. Benchmarks next to a test suite are noise. Queue the skills that run code. |
 | "The finding looks right, so apply it." | Read the cited line first. Review output can name code that is not there. |

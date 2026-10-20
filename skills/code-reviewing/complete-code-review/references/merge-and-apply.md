@@ -228,7 +228,7 @@ If `git apply -R` fails, stop. Tell the user which batch and which file. Do not 
 
 ### Run
 
-1. Spawn one `code-developer` agent per batch (`model` `opus`), with the prompt from `agent-prompts.md`. The `static-analysis` batch and the `dependency-analysis` batch use their own prompts.
+1. Spawn one `code-developer` agent per batch (`model` `sonnet`), with the prompt from `agent-prompts.md`. The `static-analysis` batch and the `dependency-analysis` batch use their own prompts.
 2. When the agent returns, run the project's tests for the files it changed.
 3. Tests pass: keep the batch. Tests fail: undo the batch, record it as "reverted" with the failing output, and go on.
 4. Findings that the code-developer reports as "needs decision" join the question for the user. Ask once, after the last batch. Apply the approved ones as a last batch, with a checkpoint.
