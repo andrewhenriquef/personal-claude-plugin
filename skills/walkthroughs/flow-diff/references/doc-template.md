@@ -35,7 +35,11 @@ Use in Steps 0 and 7 of `flow-diff`. Create the file at Step 0 and fill it as yo
 
 **Files [Arquivos]:** `path/a.rb`, `path/b.rb`, `spec/...`
 
-### AS IS (`<main branch>` @ `<base sha>`)
+### <Scenario: what happens, e.g. "The refund goes through"> [Cenário]
+
+<Repeat this block for each scenario of the flow: the main path, and each branch and error path. No `alt`, `opt`, or `else`. Title each scenario with a short description of what happens, not with a letter or a number. A scenario with stages of its own gets one pair per stage, each titled with what the stage does. Omit the AS IS of a new scenario and the TO BE of a removed one, and say so in one line.>
+
+#### AS IS (`<main branch>` @ `<base sha>`)
 
 ```mermaid
 sequenceDiagram
@@ -44,7 +48,7 @@ sequenceDiagram
 
 <Caption.>
 
-### TO BE (this branch)
+#### TO BE (this branch)
 
 ```mermaid
 sequenceDiagram

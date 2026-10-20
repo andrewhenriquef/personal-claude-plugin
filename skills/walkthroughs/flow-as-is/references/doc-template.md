@@ -34,7 +34,7 @@ sequenceDiagram
   ...
 ```
 
-<Caption: what to notice.>
+<Caption: what to notice. The diagram shows the main path. Other scenarios are in the parts.>
 
 ## Parts [Partes]
 
@@ -43,6 +43,10 @@ sequenceDiagram
 - **Where:** `file:line` to `file:line`
 - **Input → output:** <...>
 
+#### <Scenario: what happens, e.g. "The charge succeeds"> [Cenário]
+
+<Start with the main path.>
+
 ```mermaid
 sequenceDiagram
   ...
@@ -50,11 +54,22 @@ sequenceDiagram
 
 <Caption.>
 
+#### <Scenario: what happens, e.g. "The card is declined"> [Cenário]
+
+<Repeat for each branch and error path that touches other components. Title each scenario with a short description of what happens, not with a letter or a number. No `alt`, `opt`, or `else`. A scenario with stages of its own gets one diagram per stage, each titled with what the stage does, e.g. "The card is declined: the gateway rejects the charge", "The card is declined: the order is marked declined".>
+
+```mermaid
+sequenceDiagram
+  ...
+```
+
+<Caption: where it splits from the scenario above.>
+
 **Steps [Passos]**
 
 1. <One hop per line, with `file:line`.>
 
-**Decisions [Decisões]:** <condition from the code, what each branch does, and why if the code, a commit, or an ADR says; else "The code does not say why".>
+**Decisions [Decisões]:** <condition from the code, what each branch does (name the scenario by its title), and why if the code, a commit, or an ADR says; else "The code does not say why". Branches with no diagram are described here.>
 
 **Errors [Erros]:** <what fails, where it is handled, what the caller sees.>
 

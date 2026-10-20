@@ -103,7 +103,7 @@ From the stated intent and the traces, write:
 
 Read [references/diagrams.md](references/diagrams.md). For each unit:
 
-- **Changed flow:** an AS IS sequence diagram from the base, then a TO BE diagram from the branch, with the same participants in the same order. In the TO BE diagram, mark the added and changed steps, and note the removed ones.
+- **Changed flow:** split it into scenarios (the main path, and each branch and error path), as in the flow-as-is diagram rules. Never use `alt`, `opt`, or `else`. For each scenario that exists on both sides, draw an AS IS sequence diagram from the base, then a TO BE diagram from the branch, with the same participants in the same order. In the TO BE diagram, mark the added and changed steps, and note the removed ones. A scenario that is new gets a TO BE diagram only. A scenario that was removed gets an AS IS diagram only. A scenario that did not change gets no diagram. When a scenario has stages of its own, draw one diagram per stage.
 - **New flow:** a TO BE diagram only.
 - **Removed flow:** an AS IS diagram only, and one line on what replaces it, if anything.
 - **No flow change:** no diagram.
@@ -119,7 +119,7 @@ Fill every section of the template in the language from Step 0, with the plain-l
 1. **Title:** one line that stands alone and says what the change does, in the imperative ("Refund partial orders through the payment gateway"). No tags in the title; the ticket goes in the header.
 2. **General context:** the problem, what changed, what the changes indicate, and the divergences, from Step 5. Five to ten sentences.
 3. **Reading order:** the units in order, each with the file to open first.
-4. **One section per unit:** a short context (two to four sentences: what this flow does, what changes and why), the AS IS diagram with its caption, the TO BE diagram with its caption, the list of differences, and the tests.
+4. **One section per unit:** a short context (two to four sentences: what this flow does, what changes and why), for each scenario the AS IS diagram with its caption and the TO BE diagram with its caption, the list of differences, and the tests.
 5. **Other changes:** the table of files with no flow change.
 6. **Observations, Not verified, Assumptions.**
 
@@ -154,6 +154,7 @@ In the chat, in the user's language, show: the path of the doc, the title, the g
 - An AS IS citation without the base SHA, or an AS IS read from the working tree.
 - A TO BE diagram with no marked step, or a marked step with no hunk in the diff.
 - A changed flow with only one diagram.
+- An `alt`, `opt`, or `else` block in a sequence diagram, or a branch of a changed flow folded into another scenario's diagram.
 - "What the changes indicate" with no evidence and no "inferred" mark.
 - The PR text repeated as fact with no check against the code.
 - A review verdict, a fix, or a recommendation in the doc.

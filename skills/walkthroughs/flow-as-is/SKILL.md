@@ -1,6 +1,6 @@
 ---
 name: flow-as-is
-description: Explore an existing flow in the codebase and explain it with clarity, without changing code. Reads the code and the tests from the entry point (endpoint, job, command, event, UI action) to the last side effect, splits the flow into 3 to 7 parts, draws a Mermaid sequence diagram of the whole flow and one per part, and explains each part in the plain-language standard of the user's language (ASD-STE100 English, Linguagem Simples Portuguese, ISO 24495-1 for others, as in grammar-review). Every statement cites file:line or a test. Writes docs/<flow-name>-flow.md. Use when the user asks "how does X work", "explain this flow", "trace this request", "map the flow before I change it", "como funciona", "explique o fluxo", or wants an existing flow documented.
+description: Explore an existing flow in the codebase and explain it with clarity, without changing code. Reads the code and the tests from the entry point (endpoint, job, command, event, UI action) to the last side effect, splits the flow into 3 to 7 parts, draws a Mermaid sequence diagram of the main path of the whole flow and one per scenario of each part (no alt blocks: each branch and error path has its own diagram), and explains each part in the plain-language standard of the user's language (ASD-STE100 English, Linguagem Simples Portuguese, ISO 24495-1 for others, as in grammar-review). Every statement cites file:line or a test. Writes docs/<flow-name>-flow.md. Use when the user asks "how does X work", "explain this flow", "trace this request", "map the flow before I change it", "como funciona", "explique o fluxo", or wants an existing flow documented.
 ---
 
 # Flow As Is
@@ -94,15 +94,15 @@ Group the hops into 3 to 7 **parts**. A part is a stage a reader can name with a
 
 Read [references/diagrams.md](references/diagrams.md). Draw:
 
-1. **Overview sequence diagram.** The whole flow from the trigger to the end, each part in a numbered `rect` block. Required.
-2. **One sequence diagram per part** that has interactions between components, with `alt` for the branches and the error path. A part with one internal call gets a short step list instead.
+1. **Overview sequence diagram.** The main path of the whole flow from the trigger to the end, each part in a numbered `rect` block. Required.
+2. **Diagrams per part, one per scenario.** Each part that has interactions between components gets a diagram for its main path, and one more diagram for each branch or error path that touches other components. Never use `alt`, `opt`, or `else`: each condition is its own diagram, drawn as a straight line. When a scenario has stages of its own, each stage gets its own diagram. A part with one internal call gets a short step list instead.
 3. **A flowchart** only for a part whose result depends on several conditions. **A state diagram** only when the flow moves a record through statuses.
 
 Validate each diagram: `python3 <design-doc-mermaid skill dir>/scripts/extract_mermaid.py docs/<flow-name>-flow.md --validate` when `mmdc` is installed. Otherwise use the hand checks in the reference.
 
 ### Step 7: Write the doc
 
-Fill every section of the template in the language from Step 0, with the plain-language rules. For each part: what it does, where it lives, its diagram, the steps, the decisions and why (cite the comment, the commit, or the ADR that gives the reason; if none, write "The code does not say why"), the errors, the data it changes, and its tests. Keep snippets short (5 to 10 lines) and only where the code says more than the text.
+Fill every section of the template in the language from Step 0, with the plain-language rules. For each part: what it does, where it lives, its diagrams (one per scenario), the steps, the decisions and why (cite the comment, the commit, or the ADR that gives the reason; if none, write "The code does not say why"), the errors, the data it changes, and its tests. Keep snippets short (5 to 10 lines) and only where the code says more than the text.
 
 ### Step 8: Verify
 
@@ -124,7 +124,8 @@ In the chat, in the user's language, show: the path of the doc, the summary (2 t
 | "I will describe the usual Rails/Go layering." | Describe this repo. A hop you did not open is not in the doc. |
 | "The tests are not about the flow." | Tests show the edge cases the team cares about. Read them, or say none exist. |
 | "The subagent said so." | Its report is a lead. Open the lines before you use them. |
-| "A big diagram shows everything at once." | A big diagram shows nothing. Overview plus one per part. |
+| "A big diagram shows everything at once." | A big diagram shows nothing. Overview plus one per scenario of each part. |
+| "One diagram with `alt` is shorter." | It hides which path runs when. Draw one straight-line diagram per scenario. |
 | "I will add how to improve it." | This skill explains. Put facts under "Observations" and stop there. |
 | "The comment explains it." | Comments go stale. Cite the code; use the comment only for the why. |
 
@@ -132,6 +133,8 @@ In the chat, in the user's language, show: the path of the doc, the summary (2 t
 
 - A hop, a participant, or a message with no `file:line` and no `(inferred)` mark.
 - A diagram with more than about 10 participants or 25 messages.
+- An `alt`, `opt`, or `else` block in a sequence diagram.
+- A branch or error path in the hop table with no diagram of its own and no line under "Decisions".
 - A part with no tests listed and no "No test found" line.
 - Two terms for the same thing, or a term that is not in the glossary.
 - A fix, a refactor plan, or a recommendation in the doc.
@@ -144,7 +147,7 @@ In the chat, in the user's language, show: the path of the doc, the summary (2 t
 - [ ] `docs/<flow-name>-flow.md` exists, with the commit, the scope, and `Status: done`.
 - [ ] The entry point and every hop to the end boundary cite `file:line`.
 - [ ] Each part lists its tests, or "No test found" with the search.
-- [ ] One overview sequence diagram and one diagram per part with interactions; each renders or passed the hand checks.
+- [ ] One overview sequence diagram of the main path. For each part with interactions: one diagram for the main path and one for each branch and error path, none with `alt`, `opt`, or `else`; each renders or passed the hand checks.
 - [ ] Diagram labels and text use the glossary. Inferred steps are marked.
 - [ ] The text follows the plain-language standard of the user's language. Identifiers, paths, and errors are verbatim.
 - [ ] "Not verified" lists each unconfirmed claim and where you searched.
