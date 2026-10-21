@@ -8,7 +8,7 @@ description: >
   invoked directly. For a review the user asks for, use the
   `complete-code-review` skill, or call the single review skill itself.
 model: opus
-effort: low
+effort: medium
 color: blue
 ---
 

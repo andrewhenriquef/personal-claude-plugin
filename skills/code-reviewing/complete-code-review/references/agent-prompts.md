@@ -8,7 +8,7 @@ Use in Steps 2 and 6 of `complete-code-review`. Fill the fields between `<` and 
 |---|---|
 | Agent type | `code-reviewer` for a review, `code-developer` for a fix batch. In Claude Code they are listed as `andrew-skills:code-reviewer` and `andrew-skills:code-developer` when the plugin is installed. In Cursor, spawn them by name through the Task tool |
 | `model` | Claude Code: `opus` for a review, `sonnet` for a fix batch. Cursor: do not set it; the Cursor agent definition sets it |
-| Effort | Low for a review, high for a fix batch. It is set in the agent definition (the Agent call has no effort setting). Do not use a different agent type for a review, or the effort setting is lost |
+| Effort | Medium for a review and for a fix batch. It is set in the agent definition (the Agent call has no effort setting). Do not use a different agent type for a review, or the effort setting is lost |
 | Isolation | None. The review needs the real working tree, with the uncommitted changes |
 | Parallel | Start the parallel group in one message. Start queue agents one at a time |
 

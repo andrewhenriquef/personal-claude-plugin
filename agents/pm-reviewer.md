@@ -9,7 +9,7 @@ description: >
   coverage (see tech-lead-reviewer and qa-reviewer for those). Read-only: never
   edits the PRD, only reports findings.
 model: opus
-effort: high
+effort: medium
 tools: ["Read", "Grep", "Glob"]
 color: blue
 ---

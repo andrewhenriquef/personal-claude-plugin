@@ -12,7 +12,7 @@ description: >
   into persona, flow, and problem-statement artifacts and hands them off
   before implementation planning begins.
 model: opus
-effort: high
+effort: medium
 tools: ["Read", "Grep", "Glob", "Write", "Edit", "Skill", "AskUserQuestion"]
 color: purple
 ---

@@ -8,7 +8,7 @@ description: >
   a `dependency-analysis` batch it runs that skill in Fix mode. Not meant to be
   invoked directly. For a review, use the `complete-code-review` skill.
 model: sonnet
-effort: high
+effort: medium
 color: orange
 ---
 

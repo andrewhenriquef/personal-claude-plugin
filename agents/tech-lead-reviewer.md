@@ -10,7 +10,7 @@ description: >
   questions (that violates feature-planning's own product-level-only rule).
   Read-only: never edits the PRD, only reports findings.
 model: opus
-effort: high
+effort: medium
 tools: ["Read", "Grep", "Glob"]
 color: orange
 ---

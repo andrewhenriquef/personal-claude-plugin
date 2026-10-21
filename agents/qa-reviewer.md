@@ -11,7 +11,7 @@ description: >
   feature-planning Step 7). Read-only: never edits the PRD, only reports
   findings.
 model: opus
-effort: high
+effort: medium
 tools: ["Read", "Grep", "Glob"]
 color: purple
 ---
