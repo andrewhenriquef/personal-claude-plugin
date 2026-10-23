@@ -180,6 +180,31 @@ Install plugin:
 /plugin install andrew-skills@andrew-plugins
 ```
 
+#### Update
+
+Auto-update is off for this marketplace. Claude Code refreshes official marketplaces on its own. The steps below are in [Install and manage plugins](https://code.claude.com/docs/en/plugins/install).
+
+In a session, run `/plugin`, open **Installed**, select `andrew-skills`, and choose **Update now**. Or open **Marketplaces**, select `andrew-plugins`, and choose **Update marketplace**. That refreshes the listing and updates the plugins installed from it.
+
+In a shell:
+
+```
+claude plugin update andrew-skills@andrew-plugins
+```
+
+A running session keeps the version it already loaded. Run `/reload-plugins`, or start a new session.
+
+`claude plugin marketplace update andrew-plugins` refreshes the marketplace listing. The installed plugin moves when you run `claude plugin update`, or when you choose **Update marketplace** in `/plugin`.
+
+To turn auto-update on, run `/plugin`, open **Marketplaces**, select `andrew-plugins`, and choose **Enable auto-update**.
+
+The two external skills update the same way:
+
+```
+claude plugin update prd-development@pm-skills
+claude plugin update user-story@pm-skills
+```
+
 ### Cursor
 
 1. Open **Customize** in the sidebar, then **From GitHub Repository**.
