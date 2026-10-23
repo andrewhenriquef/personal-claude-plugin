@@ -54,7 +54,7 @@ Read [references/routing.md](references/routing.md). It maps each file class and
 2. Check the content signals with the `grep` commands in the reference. When a signal is unclear, run the skill. A skipped lens finds nothing.
 3. Check that each chosen skill is installed (it is in the skills list). If one is missing, say so and carry on without it.
 4. Put each chosen skill in a group:
-   - **Parallel group:** skills that run no project code. They read files, run read-only scanners, and read packages.
+   - **Parallel group:** skills that run no project code. They read files, run read-only scanners, and read packages. In Claude Code, `harness-code-review` is in this group and runs inside `code-reviewer`. In Cursor, do not spawn it: Step 2 runs it in this thread, still without editing the tree.
    - **Queue:** skills that run the project's tests, tools, benchmarks, or local database. They run one at a time.
    - **Apply phase:** `static-analysis` (and `code-simplify`, only on request). They change code, so they do not run in Step 2. They run in Step 6.
    - `tech-debt-analysis` reviews in the parallel group (it reads only), and its "fix now" items are applied in Step 6.
@@ -78,12 +78,13 @@ Apply: <yes | no (review only)>
 
 Read [references/agent-prompts.md](references/agent-prompts.md) for the prompt of each agent.
 
-1. Spawn each review in its own agent: agent type `code-reviewer`. In Claude Code, set `model` to `opus`; the agent definition also sets effort to medium, and the agent type is listed as `andrew-skills:code-reviewer` when the plugin is installed. In Cursor, spawn the `code-reviewer` subagent through the Task tool; its model comes from the Cursor agent definition. Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands.
-2. Start the whole parallel group in **one message**, so the agents run at the same time. You may start the first queued agent in the same message.
-3. Start each next queued agent when the previous queued agent returns. Run `performance-analysis` last, after every other agent has returned, so nothing else loads the machine during its measurements.
-4. If the user says "run them all in parallel", do it, and say that shared test databases and benchmark noise may affect the results of the skills in the queue.
-5. After **each** agent returns, save its report to the run directory and tick it in the ledger. Then compare the tree with the snapshot. If the working tree changed, stop. Tell the user which agent and which files. Do not continue and do not undo anything yourself.
-6. Do not edit any file in this step.
+1. Spawn each review in its own agent: agent type `code-reviewer`. In Claude Code, set `model` to `opus`; the agent definition also sets effort to medium, and the agent type is listed as `andrew-skills:code-reviewer` when the plugin is installed. In Cursor, spawn the `code-reviewer` subagent through the Task tool; its model comes from the Cursor agent definition, which is the conversation model (`inherit`). Give each agent: its skill, the scope as an explicit file list (or "full"), the intent, the languages, and the project's commands. In Cursor, leave `harness-code-review` out of this spawn list.
+2. **Cursor, `harness-code-review`:** run it in this thread before the other reviews, in orchestrated mode. Read and follow the `harness-code-review` skill's `SKILL.md`. Give it the same scope, intent, languages, and project commands, and the instruction "Do not edit the working tree". Save its report to the run directory, tick it in the ledger, and compare the tree with the snapshot. If the tree changed, stop, the same way as after an agent. In Claude Code, `harness-code-review` stays inside a `code-reviewer` agent with the rest of the parallel group.
+3. Start the whole parallel group in **one message**, so the agents run at the same time. You may start the first queued agent in the same message.
+4. Start each next queued agent when the previous queued agent returns. Run `performance-analysis` last, after every other agent has returned, so nothing else loads the machine during its measurements.
+5. If the user says "run them all in parallel", do it, and say that shared test databases and benchmark noise may affect the results of the skills in the queue.
+6. After **each** agent returns, save its report to the run directory and tick it in the ledger. Then compare the tree with the snapshot. If the working tree changed, stop. Tell the user which agent and which files. Do not continue and do not undo anything yourself.
+7. Do not edit any file in this step.
 
 If an agent fails or returns no report, retry it once. If it fails again, record "<skill>: failed, not reviewed" and carry on.
 
@@ -133,7 +134,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 
 1. Run the project's full test command and its linter once on the final tree.
 2. If a check fails, find which batch caused it from the checkpoints. Report it. Do not start another review loop.
-3. Give the final report in the format from the reference. Lead with what needs the user (decisions and human checks), then what was applied, reverted, and skipped, then what the final checks showed.
+3. Give the final report in the format from the reference. Lead with what needs the user (decisions and human checks), then what was applied, reverted, and skipped, then what the final checks showed. In Cursor, say that the review and apply agents used the conversation model. In Claude Code, review agents are Opus and apply agents are Sonnet.
 
 ## Common rationalizations
 
@@ -168,7 +169,7 @@ Read the "Apply" section of [references/merge-and-apply.md](references/merge-and
 - [ ] The scope, the files dropped, and the intent are stated.
 - [ ] The run directory holds the ledger, every agent's report, and every batch patch. The ledger matches the final report.
 - [ ] The plan names every skill that ran, why, and every skill that did not run, and why.
-- [ ] Every review ran in its own `code-reviewer` agent on `opus`, with the scope given as a file list.
+- [ ] Every review ran in its own `code-reviewer` agent. In Claude Code that agent is `opus`. In Cursor, `harness-code-review` ran in the main thread, and the other reviews ran in `code-reviewer` on the conversation model. The scope was a file list.
 - [ ] The parallel group started in one message. The queue ran one agent at a time. `performance-analysis` ran last.
 - [ ] The tree was compared with the snapshot after each review agent.
 - [ ] Every finding was checked against the real file before it was merged or applied.

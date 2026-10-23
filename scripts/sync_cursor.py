@@ -12,7 +12,9 @@ name, source, and description, which is what the Cursor schema allows.
 
 Usage:
   python3 scripts/sync_cursor.py          # write the generated files
-  python3 scripts/sync_cursor.py --check  # exit 1 when the generated files are stale
+  python3 scripts/sync_cursor.py --check  # exit 1 when the generated files are stale,
+                                          # a skill description exceeds 1024 characters,
+                                          # or a line names AskUserQuestion without AskQuestion
 """
 
 import json
@@ -266,20 +268,48 @@ def expected_files():
     return files
 
 
+def skill_text_errors():
+    """Cursor skill rules that the shared SKILL.md files must already satisfy."""
+    errors = []
+    for path in sorted((ROOT / "skills").rglob("SKILL.md")):
+        text = path.read_text()
+        match = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
+        rel = path.relative_to(ROOT)
+        if not match:
+            errors.append(f"{rel}: no frontmatter")
+            continue
+        description = ""
+        for line in match.group(1).splitlines():
+            if line.startswith("description:"):
+                description = line.split(":", 1)[1].strip()
+                break
+        if len(description) > 1024:
+            errors.append(f"{rel}: description is {len(description)} characters (max 1024)")
+        for number, line in enumerate(text.splitlines(), 1):
+            if "AskUserQuestion" in line and "AskQuestion" not in line:
+                errors.append(f"{rel}:{number}: AskUserQuestion without AskQuestion")
+    return errors
+
+
 def main():
     check = "--check" in sys.argv[1:]
     files = expected_files()
     stale_agents = set(CURSOR_AGENTS_DIR.glob("*.md")) - set(files) if CURSOR_AGENTS_DIR.is_dir() else set()
+    text_errors = skill_text_errors() if check else []
 
     if check:
         stale = [p for p, content in files.items() if not p.is_file() or p.read_text() != content]
         stale += sorted(stale_agents)
         for path in stale:
             print(f"stale: {path.relative_to(ROOT)}")
+        for error in text_errors:
+            print(f"skill: {error}")
         if stale:
             print("Run: python3 scripts/sync_cursor.py")
+        if stale or text_errors:
             return 1
         print("Cursor plugin files are up to date.")
+        print("Skill descriptions and question tools are within the Cursor rules.")
         return 0
 
     CURSOR_AGENTS_DIR.mkdir(parents=True, exist_ok=True)

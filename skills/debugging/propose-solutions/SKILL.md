@@ -34,7 +34,7 @@ This skill does not write the fix. It names what would change, and how to prove 
 
 ### Step 0: Read
 
-0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call. Otherwise go on, and write each guess under **Assumptions**.
+0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call (`AskQuestion` in Cursor). Otherwise go on, and write each guess under **Assumptions**.
 1. Read `docs/<slug>/diagnosis.md`: the root cause and its confidence label, the contributing and latent factors, the reproduction, the seam note, the impact.
 2. Read the code that would change, and its callers. Read how the repo solves the same kind of problem elsewhere (validation, locking, idempotency, error handling). A fix that follows an existing pattern is cheaper and safer.
 3. Check what the fix could break: callers, public APIs, stored data, jobs in flight, other services. Use `grep` for callers and the tests that cover them. Note the numbers (how many callers).
@@ -87,7 +87,7 @@ Read the language rules in [../explain-bug/references/language.md](../explain-bu
 
 1. Write section 6 of `docs/<slug>/diagnosis.md`.
 2. Show the options in the chat: the table first, the recommendation, then each option with its diagrams.
-3. Return to `diagnose-and-reproduce`, which asks the user to choose with `AskUserQuestion` (one choice per option, the recommended one first, plus "I need more evidence" when there is room) and writes the handoff.
+3. Return to `diagnose-and-reproduce`, which asks the user to choose with `AskUserQuestion` (`AskQuestion` in Cursor; one choice per option, the recommended one first, plus "I need more evidence" when there is room) and writes the handoff.
 4. Do not start the fix.
 
 ## Output

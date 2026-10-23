@@ -19,7 +19,7 @@ This skill only interrogates and records settled answers. It does not write a pr
 
 Focus: the problem, who benefits, why it matters, success criteria, scope boundaries.
 
-Call `Skill(skill: "interview", ...)` with the PM lens: what problem, whose workflow, what's broken today, what "done" looks like, what's explicitly out of scope, how success gets measured.
+**Claude Code:** call `Skill(skill: "interview", ...)` with the PM lens. **Cursor:** read and follow the `interview` skill's `SKILL.md` in full, with the PM lens. Lens: what problem, whose workflow, what's broken today, what "done" looks like, what's explicitly out of scope, how success gets measured.
 
 ## Step 2 — Product designer: persona and flow
 
@@ -27,7 +27,7 @@ Focus: the persona as a consumer of the system — API caller, CLI operator, web
 
 Re-evaluate Step 1's output first: does the PM framing already name who benefits? If so, sharpen it into a concrete persona (goals, constraints, what a bad experience looks like) rather than re-asking who they are from scratch.
 
-Call `Skill(skill: "interview", ...)` with the design lens: persona detail, the flow step by step, decision points, what triggers each step.
+**Claude Code:** call `Skill(skill: "interview", ...)` with the design lens. **Cursor:** read and follow the `interview` skill's `SKILL.md` in full, with the design lens. Lens: persona detail, the flow step by step, decision points, what triggers each step.
 
 ## Step 3 — QA: left-shift testability
 
@@ -40,7 +40,7 @@ Re-evaluate the running Q&A against:
 4. **Non-functional dimensions** — auth/authz, data exposure, performance under load, concurrency.
 5. **Ambiguous acceptance signal** — anywhere two people could disagree on pass/fail later.
 
-Turn whatever this checklist surfaces into real questions and call `Skill(skill: "interview", ...)` with them — don't just list gaps, close them with the user. Don't invent scenarios beyond what's plausible for the stated scope.
+Turn whatever this checklist surfaces into real questions. **Claude Code:** call `Skill(skill: "interview", ...)` with them. **Cursor:** read and follow the `interview` skill's `SKILL.md` in full, with those questions. Don't just list gaps, close them with the user. Don't invent scenarios beyond what's plausible for the stated scope.
 
 ## Step 4 — Technical: feasibility and constraints
 
@@ -48,7 +48,7 @@ Focus: integration risk, feasibility, dependencies, constraints — not the solu
 
 Re-evaluate the running Q&A first: what does the flow imply needs to exist (another service, an external API, a data store, an auth mechanism)? Turn the real unknowns into questions.
 
-Call `Skill(skill: "interview", ...)` with the technical lens: what systems/services this touches or depends on, any known constraints (latency, scale, compliance, existing contracts it must not break), anything already ruled out and why. Stay at the level of constraints and dependencies the user actually knows — don't design the solution here, and don't ask the user to invent technical answers they don't have; if they don't know, that's an open assumption, not a punt to solve now.
+**Claude Code:** call `Skill(skill: "interview", ...)` with the technical lens. **Cursor:** read and follow the `interview` skill's `SKILL.md` in full, with the technical lens. Lens: what systems/services this touches or depends on, any known constraints (latency, scale, compliance, existing contracts it must not break), anything already ruled out and why. Stay at the level of constraints and dependencies the user actually knows — don't design the solution here, and don't ask the user to invent technical answers they don't have; if they don't know, that's an open assumption, not a punt to solve now.
 
 ## Output
 

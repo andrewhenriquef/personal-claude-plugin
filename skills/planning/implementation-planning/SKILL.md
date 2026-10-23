@@ -11,7 +11,7 @@ Turn product-level user stories into a technical implementation plan, written ba
 
 Not a spec-writing skill and not a coding skill. It plans *how* the story gets built; it does not write production code, open a PR, or re-litigate *what* the story is.
 
-Skill calls below are written as Claude Code `Skill(skill: ...)` calls. In Cursor, which has no `Skill` tool, read and follow that skill's `SKILL.md` by name.
+Skill calls below are written as Claude Code `Skill(skill: ...)` calls. In Cursor, which has no `Skill` tool, read and follow that skill's `SKILL.md` by name. `model: opus` and `effort: high` apply in Claude Code. In Cursor the model is the one in the conversation.
 
 ## Input
 
@@ -31,7 +31,7 @@ This skill exists to resolve exactly the things `feature-planning` deliberately 
 
 ## Interrogate for technical decisions only
 
-Codebase exploration settles most technical decisions. When one doesn't — a real fork with no clear winner from convention or context (e.g. sync vs async, which existing service owns this, new table vs new column) — call `Skill(skill: "interview", args: <the open technical question(s)>)` to grill the user until settled. Don't guess on a decision that would be expensive to reverse later. Never route product-level questions (scope, persona, business rules) through this — those go back to the user directly, flagged, per the anti-pattern above.
+Codebase exploration settles most technical decisions. When one doesn't — a real fork with no clear winner from convention or context (e.g. sync vs async, which existing service owns this, new table vs new column) — grill the user until settled. **Claude Code:** call `Skill(skill: "interview", args: <the open technical question(s)>)`. **Cursor:** read and follow the `interview` skill's `SKILL.md` in full (input: the open technical question(s)). Don't guess on a decision that would be expensive to reverse later. Never route product-level questions (scope, persona, business rules) through this — those go back to the user directly, flagged, per the anti-pattern above.
 
 ## Process
 
@@ -43,7 +43,7 @@ Require `<TAG>` before proceeding — if missing, ask for it, don't guess or sea
 - **Nothing given, exactly one `user_story_*.md` exists** — unambiguous. Run Steps 2 through 7 yourself (Step 7 will no-op per its own single-file skip rule).
 - **Nothing given, more than one `user_story_*.md` exists** — fan out instead of asking which one or processing any of them yourself. For each story file, launch one `senior-dev` subagent in parallel: `Agent(subagent_type: "senior-dev", prompt: "<TAG> <STORY_ID>")` in Claude Code (in Cursor, the Task tool with subagent `senior-dev` and the same prompt), one call per story, all issued in the same message so they run concurrently — same pattern as `feature-planning`'s parallel review step. Each `senior-dev` does the equivalent of Steps 2-6 for its own story only, directly (it does not call back into this skill, and never runs `interview` itself — a background agent can't hold a live back-and-forth with the user). Once every spawned agent has finished, skip Steps 2-6 yourself and:
   1. Relay each agent's report to the user (story, changed-flow vs new-feature, 🔧 tags resolved).
-  2. For anything an agent reported as **Blocked** (a product-level ambiguity, or a real technical fork it couldn't settle), call `Skill(skill: "interview", args: <the blocked question(s)>)` yourself — you're in the main thread and can. Once answered, patch that resolved detail directly into the affected story's `## Implementation Details` (and remove its 🔧 tag) — you don't need to re-spawn the agent for a one-field fix.
+  2. For anything an agent reported as **Blocked** (a product-level ambiguity, or a real technical fork it couldn't settle), interview the user yourself — you're in the main thread and can. **Claude Code:** call `Skill(skill: "interview", args: <the blocked question(s)>)`. **Cursor:** read and follow the `interview` skill's `SKILL.md` in full (input: the blocked question(s)). Once answered, patch that resolved detail directly into the affected story's `## Implementation Details` (and remove its 🔧 tag) — you don't need to re-spawn the agent for a one-field fix.
   3. Run Step 7 once, yourself, against every story with an `## Implementation Details` section — a story an agent couldn't finish at all just has none yet, and Step 7 already skips those.
 
 This skill is the only thing that spawns `senior-dev` agents — it never calls itself back, and `senior-dev` never calls this skill. Fan-out happens exactly once, at Step 1, only when `<STORY_ID>` is absent and multiple stories exist.
@@ -63,7 +63,7 @@ Trace the existing code flow and sequence relevant to the story — which classe
 
 ### Step 4 — Generate story-level flow diagram: `design-doc-mermaid`
 
-Call `Skill(skill: "design-doc-mermaid", args: <the story as a whole, as a flowchart>)` once per story, to produce one **flowchart** (`flowchart TD`) covering the story end-to-end — not a sequence diagram; this is the high-level shape of the story, not an actor/message trace (that's Step 5). Skip a story that already has its flow diagram(s) from a prior run. Base it on Step 3's finding, same logic as Step 5's AC diagrams:
+**Claude Code:** call `Skill(skill: "design-doc-mermaid", args: <the story as a whole, as a flowchart>)` once per story. **Cursor:** read and follow the `design-doc-mermaid` skill's `SKILL.md` in full once per story (input: the story as a whole, as a flowchart). Produce one **flowchart** (`flowchart TD`) covering the story end-to-end — not a sequence diagram; this is the high-level shape of the story, not an actor/message trace (that's Step 5). Skip a story that already has its flow diagram(s) from a prior run. Base it on Step 3's finding, same logic as Step 5's AC diagrams:
 
 - **Existing flow being changed** — generate two diagrams: **AS IS** (current story-level flow) and **TO BE** (flow after the story's change).
 - **Complete new feature** — generate one diagram: the new story-level flow. No AS IS diagram.
@@ -90,7 +90,7 @@ flowchart TD
 
 ### Step 5 — Generate per-AC sequence diagrams: `design-doc-mermaid`
 
-For each story file, call `Skill(skill: "design-doc-mermaid", args: <one acceptance criterion>)` once per acceptance criterion that doesn't already have a diagram(s). Skip criteria that already have their diagram(s) from a prior run. Base it on Step 3's finding:
+For each story file, once per acceptance criterion that doesn't already have a diagram(s): **Claude Code:** call `Skill(skill: "design-doc-mermaid", args: <one acceptance criterion>)`. **Cursor:** read and follow the `design-doc-mermaid` skill's `SKILL.md` in full (input: that one acceptance criterion). Skip criteria that already have their diagram(s) from a prior run. Base it on Step 3's finding:
 
 - **Existing flow being changed** — generate two diagrams: **AS IS** (current flow, unchanged) and **TO BE** (flow after the story's change). Both cover the same acceptance criterion.
 - **Complete new feature** — generate one diagram: the new flow the criterion describes. No AS IS diagram — there's no prior flow to show.

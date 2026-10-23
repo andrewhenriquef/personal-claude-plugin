@@ -41,7 +41,7 @@ This skill does not review code itself. It finds out which harness it runs in, c
 
 **Mode.**
 
-- **Orchestrated:** the prompt gives a scope (a file list, or "full") and says "Do not edit the working tree". A `code-reviewer` agent started this skill for `complete-code-review`.
+- **Orchestrated:** the prompt gives a scope (a file list, or "full") and says "Do not edit the working tree". In Claude Code a `code-reviewer` agent started this skill for `complete-code-review`. In Cursor, `complete-code-review` runs this skill in the main thread.
 - **Standalone fix:** the user said "fix", "apply", or "review and fix".
 - **Standalone report:** everything else. This is the default.
 
@@ -61,7 +61,9 @@ This skill does not review code itself. It finds out which harness it runs in, c
 - Add `--fix` only in standalone fix mode. Never add `--fix`, `--comment`, or `ultra` in orchestrated mode.
 - Its recipe also reports reuse, simplification, and efficiency cleanups. Keep them. In report mode they stand in for `simplify`.
 
-**Cursor.** Spawn the `bugbot` and `security-review` subagents through the Task tool, **in one message**, so they run at the same time. This is the same as choosing both reviewers in `/review`. Give each one:
+**Cursor.** If this run is already inside a Cursor subagent (the prompt says you are `code-reviewer`, or you were spawned by the Task tool), do not call the Task tool. Record "native reviewer unavailable" under "Needs human check" and stop this step. `complete-code-review` runs this skill in the main thread on Cursor.
+
+Otherwise, spawn the `bugbot` and `security-review` subagents through the Task tool, **in one message**, so they run at the same time. This is the same as choosing both reviewers in `/review`. Give each one:
 
 ```
 Repository: <absolute repository path>

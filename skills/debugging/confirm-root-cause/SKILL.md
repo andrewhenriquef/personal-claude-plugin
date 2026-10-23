@@ -35,7 +35,7 @@ This skill adds probes to code only for the length of the run. It removes them b
 
 ### Step 0: Read, and set up the probe tag
 
-0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call. Otherwise go on, and write each guess under **Assumptions**. Take the tree snapshot as `diagnose-and-reproduce` does (Step 0, item 3).
+0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call (`AskQuestion` in Cursor). Otherwise go on, and write each guess under **Assumptions**. Take the tree snapshot as `diagnose-and-reproduce` does (Step 0, item 3).
 1. Read `docs/<slug>/diagnosis.md`: the symptom card, the hypotheses, the reproduction command and its minimal scenario.
 2. Run the reproduction once. Confirm it is still red, and that the tree is as the snapshot says.
 3. Pick a probe tag: `[DEBUG-xxxx]` with four random hex characters. Use the **same tag** for every probe in this run, and write it in section 4 of `diagnosis.md` now. Cleanup is then one search.

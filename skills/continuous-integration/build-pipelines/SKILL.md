@@ -101,7 +101,7 @@ This is the second skill of the `continuous-integration` family:
 3. **Ask once, in one round.** Show the status tables from the scan's Tool options section, then ask every question together:
    - The other suggestions: one multi-select question, must first. Show the category, the recommended tool, and the effort for each.
    - The tool for each new check (baseline items included, and every suggestion the user may select): one question per check, as in "Asking the user" of tool-research.md. The recommended tool is always the first option. A tool answer for a suggestion counts only if the user selects that suggestion.
-   - **Claude Code:** one `AskUserQuestion` call holds up to 4 questions. With more, make the fewest calls, back to back, with no other work between them.
+   - **Claude Code:** one `AskUserQuestion` call holds up to 4 questions. With more, make the fewest calls, back to back, with no other work between them. **Cursor:** one `AskQuestion` call can hold the whole round; if it refuses, split the same way.
 4. Existing checks are always set up. Do not ask about them.
 
 ### Step 3: Plan each check

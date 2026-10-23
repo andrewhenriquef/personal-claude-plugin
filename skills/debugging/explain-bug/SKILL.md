@@ -34,7 +34,7 @@ This skill writes text and diagrams. It changes no code and proposes no fix. Fix
 
 ### Step 0: Read, and gather facts
 
-0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call. Otherwise go on, and write each guess under **Assumptions**.
+0. If `docs/<slug>/diagnosis.md` does not exist (this skill was called alone), pick a slug and create the file from [the template](../diagnose-and-reproduce/references/diagnosis-template.md). Fill the symptom card from what the user gave. Ask the user only when a missing fact blocks this skill, and then ask once, all questions in one `AskUserQuestion` call (`AskQuestion` in Cursor). Otherwise go on, and write each guess under **Assumptions**.
 1. Read `docs/<slug>/diagnosis.md` fully: symptom card, hypotheses, reproduction, root cause, experiment log.
 2. Read the code of the failing flow, only to name the real components, functions, and calls for the diagrams. Use real names from the code. Do not invent a function, a service, or a message.
 3. List the **facts** you will use. For each, note its source (a log line, a trace ID, a test output, an experiment). A claim with no source does not go in. It goes under "Not verified".

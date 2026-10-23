@@ -156,13 +156,13 @@ Install in Claude Code:
 /plugin install user-story@pm-skills
 ```
 
-Install in Cursor: Cursor has no cross-plugin dependencies, and `pm-skills` ships no Cursor plugin manifest, so copy the two skills into your user skills folder:
+Install in Cursor: Cursor has no cross-plugin dependencies, and `pm-skills` ships no Cursor plugin manifest. From a checkout of this plugin, run:
 
 ```
-git clone --depth 1 https://github.com/deanpeters/Product-Manager-Skills /tmp/pm-skills
-mkdir -p ~/.cursor/skills
-cp -R /tmp/pm-skills/skills/prd-development /tmp/pm-skills/skills/user-story ~/.cursor/skills/
+bash scripts/install_cursor_pm_skills.sh
 ```
+
+The script clones `deanpeters/Product-Manager-Skills` and copies only `prd-development` and `user-story` into `~/.cursor/skills/`. It does not add those skills to this repository.
 
 ## Install
 
@@ -186,8 +186,19 @@ Install plugin:
 2. Enter `andrewhenriquef/personal-claude-plugin`.
 3. Install the `andrew-skills` plugin.
 4. Optional: set `CONTEXT7_API_KEY` in **Plugins → Configure** for higher context7 rate limits. context7 works without it.
+5. For `feature-planning`, run `bash scripts/install_cursor_pm_skills.sh` from a checkout of this plugin. That copies `prd-development` and `user-story` into `~/.cursor/skills/`.
 
-Generated Cursor agents rewrite Claude Code `Skill` calls into reading that skill's `SKILL.md`. Shared skills name `AskQuestion` and the Task tool where Claude Code uses `AskUserQuestion` and `Agent`. Agents use `model: inherit`. In Cursor, `feature-planning` Step 0 stays in the main thread, because a subagent cannot hold the discovery interview.
+#### Update
+
+There is no update command in this repository. What happens depends on how the plugin was installed. Cursor documents this under [Keep plugins up to date](https://cursor.com/docs/plugins).
+
+- A plugin from the official Cursor Marketplace is re-fetched when you open Cursor or focus the window again.
+- This plugin, installed from GitHub with the steps above, stays pinned to the commit from the install. **Update** and **Reinstall** put that same snapshot back. That pinning is a known Cursor bug: [Plugin Update & Version Management](https://forum.cursor.com/t/plugin-update-version-management-how-are-installed-plugins-updated/166454).
+- Updates that follow the git branch come from a team marketplace imported from this repository. In the dashboard, use **Refresh**, or turn on **Auto Refresh** (the Cursor GitHub App must be installed on the repo; Cursor re-indexes at most once every 10 minutes). Then reopen Cursor or focus the window.
+
+`python3 scripts/sync_cursor.py` is for someone editing this repo. It regenerates `.cursor-plugin/` from the Claude files. It does not update a plugin already installed in Cursor. See [Maintaining](#maintaining).
+
+Generated Cursor agents rewrite Claude Code `Skill` calls into reading that skill's `SKILL.md`. Shared skills name `AskQuestion` and the Task tool where Claude Code uses `AskUserQuestion` and `Agent`. Agents use `model: inherit`. In Cursor, `feature-planning` Step 0 stays in the main thread, because a subagent cannot hold the discovery interview. In Cursor, `complete-code-review` runs `harness-code-review` in the main thread, because a subagent cannot start `bugbot` or `security-review`.
 
 ## Maintaining
 
@@ -197,7 +208,7 @@ The Claude Code files are the source of truth: `.claude-plugin/`, `.mcp.json`, a
 python3 scripts/sync_cursor.py
 ```
 
-`python3 scripts/sync_cursor.py --check` exits non-zero when the Cursor files are stale. The script maps the Claude `model` alias to a Cursor model (`MODEL_MAP`), marks an agent `readonly` when its `tools` list has no `Write`, `Edit`, or `Bash`, rewrites `Skill` tool calls in the generated agents, keeps marketplace entries to the fields the Cursor schema allows, and rewrites `${VAR:-default}` in `.mcp.json` to a Cursor plugin variable.
+`python3 scripts/sync_cursor.py --check` exits non-zero when the Cursor files are stale, when a skill `description` is longer than 1024 characters, or when a line names `AskUserQuestion` without `AskQuestion` on the same line. The script maps the Claude `model` alias to a Cursor model (`MODEL_MAP`), marks an agent `readonly` when its `tools` list has no `Write`, `Edit`, or `Bash`, rewrites `Skill` tool calls in the generated agents, keeps marketplace entries to the fields the Cursor schema allows, and rewrites `${VAR:-default}` in `.mcp.json` to a Cursor plugin variable.
 
 ### Adding a skill
 

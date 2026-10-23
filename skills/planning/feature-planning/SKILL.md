@@ -49,11 +49,19 @@ Feed its output (persona, flow, problem statement, and any open assumptions) int
 
 ### Step 1 — Gather requirements: `prd-development`
 
-Call `Skill(skill: "prd-development", args: <task description, plus Step 0's discovery output if it ran>)`. Let it drive problem framing, personas, solution overview, and success criteria for the feature/task at hand.
+`prd-development` is not in this plugin. In Cursor its file is `~/.cursor/skills/prd-development/SKILL.md`. If that file is missing, stop. Tell the user to run, from a checkout of this plugin:
+
+```
+bash scripts/install_cursor_pm_skills.sh
+```
+
+Do not write the PRD from memory.
+
+**Claude Code:** call `Skill(skill: "prd-development", args: <task description, plus Step 0's discovery output if it ran>)`. **Cursor:** read and follow `~/.cursor/skills/prd-development/SKILL.md` in full (input: the task description, plus Step 0's discovery output if it ran). Let it drive problem framing, personas, solution overview, and success criteria for the feature/task at hand.
 
 ### Step 2 — Fill gaps: `interview`
 
-Whenever `prd-development` (or you) hits a question, ambiguity, or missing data point that only the user can answer — scope boundary, persona detail, edge case, priority call — do not just ask inline. Call `Skill(skill: "interview", args: <the open question(s)>)` to grill the user until that branch is settled. Don't make assumptions, ask the user always. Resume `prd-development` with the answer once settled.
+Whenever `prd-development` (or you) hits a question, ambiguity, or missing data point that only the user can answer — scope boundary, persona detail, edge case, priority call — do not just ask inline. Grill the user until that branch is settled. **Claude Code:** call `Skill(skill: "interview", args: <the open question(s)>)`. **Cursor:** read and follow the `interview` skill's `SKILL.md` in this plugin in full (input: the open question(s)). Don't make assumptions, ask the user always. Resume `prd-development` with the answer once settled. **Claude Code:** call `Skill(skill: "prd-development")` again with the answer. **Cursor:** read `~/.cursor/skills/prd-development/SKILL.md` again with the answer. If that file is missing, stop and show the install command from Step 1.
 
 Repeat Steps 1–2 until every PRD section (problem, users, solution, success metrics, scope, dependencies) has no unresolved 🔵 **Open Question** left — 🔶 **Assumption** tags may remain only if the user explicitly punted on that branch (per `interview`'s punt rule), and 🔧 **Technical detail (deferred)** tags may remain always (see anti-pattern above — those aren't this skill's to resolve).
 
@@ -76,7 +84,9 @@ Run one review round only — no re-run after fixes are applied.
 
 ### Step 5 — Extract user stories: `user-story`
 
-Once Step 4's review round and fixes are done, call `Skill(skill: "user-story", args: <PRD content or path to docs/<TAG>/PRD.md>)` and extract the user stories from the PRD. If the PRD's epic breakdown yields multiple stories, repeat the call once per story. Write each to `docs/<TAG>/user_story_<N>.md` (e.g. `docs/PFS-1110/user_story_1.md`, `user_story_2.md`, ...), creating the folder if it doesn't exist.
+`user-story` is not in this plugin. In Cursor its file is `~/.cursor/skills/user-story/SKILL.md`. If that file is missing, stop and show the install command from Step 1. Do not write the stories from memory.
+
+Once Step 4's review round and fixes are done, extract the user stories from the PRD. **Claude Code:** call `Skill(skill: "user-story", args: <PRD content or path to docs/<TAG>/PRD.md>)`. **Cursor:** read and follow `~/.cursor/skills/user-story/SKILL.md` in full (input: the PRD content or the path to `docs/<TAG>/PRD.md`). If the PRD's epic breakdown yields multiple stories, repeat the call once per story. Write each to `docs/<TAG>/user_story_<N>.md` (e.g. `docs/PFS-1110/user_story_1.md`, `user_story_2.md`, ...), creating the folder if it doesn't exist.
 
 ### Step 6 — Log questions & answers
 

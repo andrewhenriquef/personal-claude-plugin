@@ -74,37 +74,37 @@ Skill calls below are written as Claude Code `Skill(skill: ...)` calls. The plug
    - **Scope:** who and what is affected.
    - **Evidence:** redacted log lines, trace IDs, error-tracking issue IDs, with the tool and time window.
    - **Unknowns:** what blocks the next step.
-5. If an unknown blocks Step 2, ask the user **once**, all questions in one `AskUserQuestion` call, with the answers you expect as options. Otherwise go on and mark assumptions.
+5. If an unknown blocks Step 2, ask the user **once**, all questions in one `AskUserQuestion` call (`AskQuestion` in Cursor), with the answers you expect as options. Otherwise go on and mark assumptions.
 
 ### Step 2: Hypotheses
 
-Run `Skill(skill: "form-hypotheses")`. It writes 3 to 5 ranked, falsifiable hypotheses into `diagnosis.md`, each with a prediction and the cheapest test that would show it. Show the list to the user in the chat and go on. Do not wait. The user may re-rank it at any time.
+**Claude Code:** run `Skill(skill: "form-hypotheses")`. **Cursor:** read and follow the `form-hypotheses` skill's `SKILL.md` in full. It writes 3 to 5 ranked, falsifiable hypotheses into `diagnosis.md`, each with a prediction and the cheapest test that would show it. Show the list to the user in the chat and go on. Do not wait. The user may re-rank it at any time.
 
 ### Step 3: Reproduce
 
-Run `Skill(skill: "reproduce-bug")`. It builds the feedback loop, makes the symptom fail on demand, checks that it fails for the right reason, and minimises it. The result is one command, run at least once, with its output.
+**Claude Code:** run `Skill(skill: "reproduce-bug")`. **Cursor:** read and follow the `reproduce-bug` skill's `SKILL.md` in full. It builds the feedback loop, makes the symptom fail on demand, checks that it fails for the right reason, and minimises it. The result is one command, run at least once, with its output.
 
 - **Reproduced:** go to Step 4.
 - **Not reproduced after the allowed attempts:** stop. Go to "Stop path" below.
 
 ### Step 4: Confirm the root cause
 
-Run `Skill(skill: "confirm-root-cause")`. It tests the hypotheses one variable at a time, re-ranks them with the evidence, and ends with a confidence label: **Confirmed**, **Likely**, or **Unconfirmed**. It removes every probe it added.
+**Claude Code:** run `Skill(skill: "confirm-root-cause")`. **Cursor:** read and follow the `confirm-root-cause` skill's `SKILL.md` in full. It tests the hypotheses one variable at a time, re-ranks them with the evidence, and ends with a confidence label: **Confirmed**, **Likely**, or **Unconfirmed**. It removes every probe it added.
 
 If no hypothesis survives, it returns to `form-hypotheses` once with the new evidence. A second failure goes to the user.
 
 ### Step 5: Explain
 
-Run `Skill(skill: "explain-bug")`. It writes the explanation in English and Portuguese, with a sequence diagram and a flowchart, into `diagnosis.md`. Present it to the user in the chat.
+**Claude Code:** run `Skill(skill: "explain-bug")`. **Cursor:** read and follow the `explain-bug` skill's `SKILL.md` in full. It writes the explanation in English and Portuguese, with a sequence diagram and a flowchart, into `diagnosis.md`. Present it to the user in the chat.
 
 ### Step 6: Propose solutions
 
-Run `Skill(skill: "propose-solutions")`. It writes 2 to 3 fix options with trade-offs, diagrams, and a recommendation, in English and Portuguese.
+**Claude Code:** run `Skill(skill: "propose-solutions")`. **Cursor:** read and follow the `propose-solutions` skill's `SKILL.md` in full. It writes 2 to 3 fix options with trade-offs, diagrams, and a recommendation, in English and Portuguese.
 
 ### Step 7: Gate
 
 1. Check the tree against the snapshot. Search for the probe tag that `confirm-root-cause` recorded in section 4 (`git grep -n --untracked -I "DEBUG-xxxx" -- . ':!docs/<slug>/'`; the search leaves out `docs/<slug>/`, where the tag is recorded). If a probe is left, remove it, and say so in the report.
-2. Ask the user which option to take with `AskUserQuestion`, in one question. The tool allows 4 options. Give one option per solution (2 to 3), the recommended one first, and add "I need more evidence" when there is room and no option already covers it. "Stop here" is the automatic "Other" answer.
+2. Ask the user which option to take with `AskUserQuestion` in Claude Code and `AskQuestion` in Cursor, in one question. `AskUserQuestion` allows 4 options (`AskQuestion` uses the same shape). Give one option per solution (2 to 3), the recommended one first, and add "I need more evidence" when there is room and no option already covers it. "Stop here" is the automatic "Other" answer.
 3. Write the choice and the handoff block ([references/diagnosis-template.md](references/diagnosis-template.md), section "Handoff") into `diagnosis.md`.
 4. Report: the slug, the path of `diagnosis.md`, the reproduction command, the confidence label, and the chosen option. Say that the failing test is in the working tree and not committed. Say what comes next: the fix, test first, with `tdd-development`, which takes the failing test in the working tree as its red. Stop. Do not start the fix unless the user asks.
 
