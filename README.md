@@ -1,10 +1,10 @@
 # Andrew's Claude Code and Cursor Skills
 
-Personal plugin marketplace for Claude Code and Cursor. Skills for PRD and story planning, idea interviewing, test-first development, code review, tech debt analysis, bug diagnosis, local CI pipelines, and code walkthroughs. The same skills, agents, and MCP servers install in both tools.
+Personal plugin marketplace for Claude Code and Cursor. Skills for PRD and story planning, idea interviewing, test-first development, code review, tech debt analysis, bug and vulnerability diagnosis, local CI pipelines, and code walkthroughs. The same skills, agents, and MCP servers install in both tools.
 
 ## Skills
 
-33 skills in 8 groups. Pick the group by the job, then start at its entry point. Each row below is a summary. The full description, with the words that trigger the skill, is in the frontmatter of its `SKILL.md`.
+42 skills in 9 groups. Pick the group by the job, then start at its entry point. Each row below is a summary. The full description, with the words that trigger the skill, is in the frontmatter of its `SKILL.md`.
 
 | Group | Use it to | Entry point |
 |---|---|---|
@@ -12,6 +12,7 @@ Personal plugin marketplace for Claude Code and Cursor. Skills for PRD and story
 | [Development](#development) | Build a change test-first | `tdd-development` |
 | [Code reviewing](#code-reviewing) | Review a change or a repository, and fix what is safe | `complete-code-review` |
 | [Debugging](#debugging) | Take a bug from a report to a proven cause and fix options | `diagnose-and-reproduce` |
+| [Security debugging](#security-debugging) | Take a vulnerability finding from a report to a proven verdict (exploitable or not) and fix options | `diagnose-vulnerability` |
 | [Walkthroughs](#walkthroughs) | Understand code: one flow, or what a branch changes | `flow-as-is` or `flow-diff` (independent) |
 | [Continuous integration](#continuous-integration) | Run the project's quality checks locally and in GitHub Actions | `run-pipelines` |
 | [Productivity](#productivity) | Interview, clarify intent, polish text | None: independent tools |
@@ -21,6 +22,7 @@ Personal plugin marketplace for Claude Code and Cursor. Skills for PRD and story
 
 - Feature: `interview` or `understand-the-intent`, then `feature-planning`, `implementation-planning`, `tdd-development`, `complete-code-review`.
 - Bug: `diagnose-and-reproduce`, then `tdd-development`, then `complete-code-review`.
+- Vulnerability: `diagnose-vulnerability`, then `tdd-development` (exploitable) or keep the proof test and answer the reporter (not exploitable), then `complete-code-review`.
 - Debt: `tech-debt-analysis` (Repo mode) to rank it, then `tdd-development` or `code-simplify` to pay it.
 - Before a PR: `flow-diff` to explain the change, `complete-code-review` to review it, `run-pipelines` to run the checks.
 
@@ -79,6 +81,24 @@ From a bug report to a proven cause, without fixing it. The skills form a pipeli
 | [confirm-root-cause](skills/debugging/confirm-root-cause/SKILL.md) | Proves why the bug happens with one-variable experiments. |
 | [explain-bug](skills/debugging/explain-bug/SKILL.md) | Explains the bug in English (ASD-STE100) and Brazilian Portuguese (Linguagem Simples), with diagrams. |
 | [propose-solutions](skills/debugging/propose-solutions/SKILL.md) | Offers 2 to 3 fix options with trade-offs, and recommends one. |
+
+### Security debugging
+
+From a vulnerability finding (a private company ticket, a scanner or pentest report, an advisory) to a proven verdict, without fixing it. It is the `debugging` pipeline with the steps a vulnerability needs: triage, one test of the secure behavior (red means exploitable, green means blocked), a proof path for "not exploitable", a search for sibling flaws, and rules for private material. Everything is written to `docs/security/<slug>/diagnosis.md`, which the run excludes from git (in `.git/info/exclude`). The test stays in the working tree, uncommitted.
+
+**Orchestrator:** `diagnose-vulnerability` runs the sub-skills in order. Every run is local, with seeded fake data and harmless markers. A false positive is closed only by a passing test, a control-removal experiment (disable the control for one run, the test must go red), and a written explanation in the chosen languages (English and Portuguese by default). In the exploitable case it asks whether the fix should cover the sibling flaws, then asks which fix option to take. The fix itself is for `tdd-development`.
+
+| Skill | What it does |
+|---|---|
+| [diagnose-vulnerability](skills/security-debugging/diagnose-vulnerability/SKILL.md) | Takes a vulnerability finding from a report to a verdict, a confirmed cause or a proven control, siblings, and fix options. |
+| [triage-vulnerability](skills/security-debugging/triage-vulnerability/SKILL.md) | Reads the finding, checks reachability and the controls on the path, rates exposure and severity, and gives a verdict (Validated, Needs repro, Likely false). Never closes a finding. Triages many alerts in one table. |
+| [hypothesize-vulnerability](skills/security-debugging/hypothesize-vulnerability/SKILL.md) | Ranks 3 to 5 falsifiable hypotheses over ten vulnerability categories, including "a control blocks it". |
+| [reproduce-vulnerability](skills/security-debugging/reproduce-vulnerability/SKILL.md) | Writes one test that asserts the secure behavior, through the real control, and runs it. Red is exploited, green is blocked. |
+| [confirm-vulnerability-cause](skills/security-debugging/confirm-vulnerability-cause/SKILL.md) | Proves the root cause with one-variable experiments, or proves the blocking control by disabling it for one run. |
+| [find-variants](skills/security-debugging/find-variants/SKILL.md) | Searches the repo for the same flaw, classifies each hit with evidence, and asks whether the fix covers the siblings. |
+| [prove-vulnerability-against-running-local-app](skills/security-debugging/prove-vulnerability-against-running-local-app/SKILL.md) | Boots the app locally (loopback only, throwaway database, fake users), runs a targeted script with a positive control that asserts the same secure behavior as the test, and compares the two results. The same script is reused after the fix. |
+| [explain-vulnerability](skills/security-debugging/explain-vulnerability/SKILL.md) | Explains the finding, or the proof of a false positive, in the chosen languages (English and Portuguese by default, each in its own plain-language standard), with attacker-path diagrams. |
+| [propose-vulnerability-fixes](skills/security-debugging/propose-vulnerability-fixes/SKILL.md) | Offers 2 to 3 fix options (code, upgrade, setting, rotation) with the scope over siblings, and recommends one. |
 
 ### Walkthroughs
 
